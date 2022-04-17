@@ -1,5 +1,6 @@
 
 # %%
+import stat
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
@@ -15,6 +16,8 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 import matplotlib.pyplot as plt
 import scipy.stats as stats
+from scipy.stats import shapiro
+from  scipy.stats import spearmanr
 
 
 # %%
@@ -28,7 +31,7 @@ appdata.head()
 
 #%% [markdown]
 # # Mobile App Store 
-# Our research is focused on the 
+# Our research is focused on the...
 #
 # Variables: 
 
@@ -51,9 +54,7 @@ appdata.head()
 
 #%% [markdown]
 # # Exploratory Data Analysis
-
-#%% [markdown]
-# Look at data descriptive stats
+# Look at data and basic descriptive stats
 
 appdata.shape
 appdata.describe()
@@ -61,6 +62,11 @@ appdata["price"].describe()
 
 appdata.info()
 appdata=appdata.drop(columns=['Unnamed: 0'], axis=1)
+
+appdata.shape
+print(appdata.isnull())
+print(appdata.dropna())
+appdata.shape
 
 
 #%% [markdown]
@@ -86,6 +92,41 @@ plt.show()
 
 plt.hist(new_appdata['price'])
 
+
+#%% [markdown]
+# # Checking for Normality
+# * Null hypothesis: Below variables are normally distributed
+# * Alt hypothesis: Below variables are NOT normally distributed
+
+print(new_appdata.info())
+stat, p = shapiro(new_appdata['price'])
+print('Price, Statistics=%.3f, p=%.3f' %(stat,p))
+
+stat, p = shapiro(new_appdata['size_bytes'])
+print('App size, Statistics=%.3f, p=%.3f' %(stat,p))
+
+stat, p = shapiro(new_appdata['rating_count_tot'])
+print('Count of ratings, Statistics=%.3f, p=%.3f' %(stat,p))
+
+stat, p = shapiro(new_appdata['rating_count_ver'])
+print('Count of ratings for current version, Statistics=%.3f, p=%.3f' %(stat,p))
+
+stat, p = shapiro(new_appdata['user_rating'])
+print('User ratings, Statistics=%.3f, p=%.3f' %(stat,p))
+
+
+stat, p = shapiro(new_appdata['sup_devices.num'])
+print('Number of Supporting Devices, Statistics=%.3f, p=%.3f' %(stat,p))
+
+stat, p = shapiro(new_appdata['lang.num'])
+print('Number of Supported languages , Statistics=%.3f, p=%.3f' %(stat,p))
+
+stat, p = shapiro(new_appdata['ipadSc_urls.num'])
+print('Number of Screenshots showed for Display , Statistics=%.3f, p=%.3f' %(stat,p))
+
+
+# * As shown above, the p-values are less than 0.05, so we reject the null hypothesis which states that the variables are normally distributed. 
+# * The variables are NOT normally distributed.
 
 #%%
 #create new var based on price
