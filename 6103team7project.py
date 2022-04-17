@@ -3,8 +3,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
+
 #%%
-HCdata = pd.read_csv(r'C:\Users\wpy12\OneDrive\Documents\clone\22SP_6103_11T_iDM\project\dataset.csv')
+HCdata = pd.read_csv('data\hate_crime.csv')
 # %%
 print(HCdata.describe)
 # %%
