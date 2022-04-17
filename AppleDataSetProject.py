@@ -138,6 +138,9 @@ sns.boxplot(appdata['user_rating'])
 print(np.where(appdata['user_rating']<2))
 sns.boxplot(appdata['price'])
 
+#rename some variables in order to make it simple and more sense
+new_appdata.rename(columns={"size_bytes":"Size","price":"Price","rating_count_tot":"Rating_Count", "user_rating":"Rating", "cont_rating": "Content_Rating", "prime_genre":"App_type", "sup_devices.num":"Devices_Count", "lang.num":"language_Count" } ,inplace=True)
+new_appdata.head()
 #%% [markdown]
 # # Checking for Normality
 # * Null hypothesis: Below variables are normally distributed
