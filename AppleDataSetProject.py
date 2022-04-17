@@ -59,88 +59,111 @@ appdata.head()
 appdata.shape
 #(7197,16)
 appdata.columns
-# 16 columns in our dataset: five categorical variables, eleven numerical variables(three floats and eight intergers )
+# 16 columns in our dataset: five categorical variables, eleven numerical variables(three floats and nine intergers )
 appdata.info()
 # our appdata set has 7197 rows and the non-null count is 7197 which indicates that there is no missing value in our dataset.
 appdata["user_rating"].describe()
 
+
 #drop unrelated columns
 appdata=appdata.drop(columns=['Unnamed: 0'], axis=1)
 
-#appdata.shape
-print(appdata.isnull())
+#double check missing value
 appdata.isnull().sum()
-print(appdata.dropna())
-appdata.shape
+# No missing values found 
 
+#rename some variables in order to make it simple and more sense
+appdata.rename(columns={"size_bytes":"Size","price":"Price","rating_count_tot":"Rating_Count", "user_rating":"Rating", "cont_rating": "Content_Rating", "prime_genre":"App_type", "sup_devices.num":"Devices_Count", "lang.num":"language_Count" } ,inplace=True)
+appdata.head()
+#appdata['Content_Rating'] = [x.strip('+') for x in appdata.Content_Rating]
+appdata['Rating'] = [round(x,1) for x in appdata['Rating']]
 
 #%% [markdown]
 # # Managing our Outliers
-# from scipy.stats import zscore
-
-# price = list(appdata.price)
-# plt.boxplot(price)
-# plt.show()
-
-print(np.where(appdata['price']>50))
-new_appdata = appdata[appdata['price'] <5]
-print(new_appdata.head(15))
-
-new_appdata.shape
-new_appdata.describe()
-new_appdata["price"].describe()
-new_appdata.info()
-
-newprice = list(new_appdata.price)
-plt.boxplot(newprice)
-plt.show()
-
-plt.hist(new_appdata['price'])
-
-
 import matplotlib.pyplot as plt
 f,axs = plt.subplots(8,2,figsize=(15,15))
 plt.subplot(3,2,1)
-appdata['user_rating'].plot(kind='hist', title='user_rating')
+appdata['Rating'].plot(kind='hist', title='Rating')
 plt.subplot(3,2,2)
-appdata['user_rating'].plot(kind= 'box')
+appdata['Rating'].plot(kind= 'box')
 plt.subplot(3,2,3)
-appdata['size_bytes'].plot(kind='hist', title='size_bytes')
+appdata['Size'].plot(kind='hist', title='Size')
 plt.subplot(3,2,4)
-appdata['size_bytes'].plot(kind= 'box')
+appdata['Size'].plot(kind= 'box')
 plt.subplot(3,2,5)
-appdata['price'].plot(kind='hist', title='price')
+appdata['Price'].plot(kind='hist', title='Price')
 plt.subplot(3,2,6)
-appdata['price'].plot(kind= 'box')
+appdata['Price'].plot(kind= 'box')
 
-f,axs = plt.subplots(4,2,figsize=(15,15))
-plt.subplot(4,2,1)
-appdata['rating_count_tot'].plot(kind='hist', title='rating_count_tot')
-plt.subplot(4,2,2)
-appdata['rating_count_tot'].plot(kind= 'box')
-#plt.subplot(4,2,3)
-# appdata['cont_rating'].plot(kind='hist', title='cont_rating')
+f,axs = plt.subplots(3,2,figsize=(15,15))
+plt.subplot(3,2,1)
+appdata['Rating_Count'].plot(kind='hist', title='Rating_Count')
+plt.subplot(3,2,2)
+appdata['Rating_Count'].plot(kind= 'box')
+# plt.subplot(4,2,3)
+# appdata['Content_Rating'].plot(kind='hist', title='Content_Rating')
 # plt.subplot(4,2,4)
-# appdata['cont_rating'].plot(kind= 'box')
-# get rid of '+' for con_rating 
-plt.subplot(4,2,5)
-appdata['sup_devices.num'].plot(kind='hist', title='sup_devices.num')
-plt.subplot(4,2,6)
-appdata['sup_devices.num'].plot(kind= 'box')
-plt.subplot(4,2,7)
-appdata['lang.num'].plot(kind='hist', title='lang.num')
-plt.subplot(4,2,8)
-appdata['lang.num'].plot(kind= 'box')
+# appdata['Content_Rating'].plot(kind= 'box')
+plt.subplot(3,2,3)
+appdata['Devices_Count'].plot(kind='hist', title='Devices_Count')
+plt.subplot(3,2,4)
+appdata['Devices_Count'].plot(kind= 'box')
+plt.subplot(3,2,5)
+appdata['language_Count'].plot(kind='hist', title='language_Count')
+plt.subplot(3,2,6)
+appdata['language_Count'].plot(kind= 'box')
+
+# Rating data is not normally distributed. Instead, the Rating data seems to be left-skewed. We will try to log-transform the data into log(Rating).
 
 
-sns.boxplot(appdata['user_rating'])
-# Position of the Outlier
-print(np.where(appdata['user_rating']<2))
-sns.boxplot(appdata['price'])
+#%%
+# appdata['Rating'].apply(np.log).hist()
+# Wanted to use log transformation first but some errors ourrced, need to fix it 
+#appdata['Rating'].apply(np.exp).hist()
+# expenentially tranformation is not fit here.
+appdata['Rating'].apply(np.log).plot(kind='box')
+#after normalizting it, it turned out there is some outliers in the transformed Rating data. We need to indentiy these data points before deciding to remove or keep the ourliers. 
 
-#rename some variables in order to make it simple and more sense
-new_appdata.rename(columns={"size_bytes":"Size","price":"Price","rating_count_tot":"Rating_Count", "user_rating":"Rating", "cont_rating": "Content_Rating", "prime_genre":"App_type", "sup_devices.num":"Devices_Count", "lang.num":"language_Count" } ,inplace=True)
-new_appdata.head()
+# Adding the transformed Rating data to the dataset, and name it log_rating.
+appdata['log_rating'] = appdata['Rating'].apply(np.log)
+
+# Define a function to locate outliers: to find data with difference from sample mean bigger than twice the standard deviation
+def locate_outliers(data,n):
+    return data[abs(data[n] -np.mean(data[n])) > 2 * np.std(data[n])]
+locate_outliers(appdata,'log_rating').head(5)
+# there is no data with difference from sample mean bigger than twice the standard deviation. The outliers in the boxplot are NOT satisfied as outliers with our ourlier definition.
+locate_outliers(appdata,'Price').head(5)
+locate_outliers(appdata,'Price').describe()
+# the min of outlier is 13.99.
+
+
+
+
+# print(np.where(appdata['price']>50))
+new_appdata = appdata[appdata['Price'] <13.99]
+print(new_appdata.head(15))
+# Since the min of outlier is 13.99 and we want to exclude all the outliers that over 13.99 
+
+
+new_appdata.shape
+new_appdata.describe()
+new_appdata["Price"].describe()
+new_appdata.info()
+
+newprice = list(new_appdata.Price)
+plt.boxplot(newprice)
+plt.show()
+
+plt.hist(new_appdata['Price'])
+
+
+# sns.boxplot(appdata['log_rating'])
+# # Position of the Outlier
+# print(np.where(appdata['log_rating']<2))
+# sns.boxplot(appdata['Price'])
+
+
+
 #%% [markdown]
 # # Checking for Normality
 # * Null hypothesis: Below variables are normally distributed
