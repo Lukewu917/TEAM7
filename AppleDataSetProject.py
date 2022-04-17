@@ -24,7 +24,7 @@ from  scipy.stats import spearmanr
 #load_data
 import os
 os.getcwd()
-os.chdir('/Users/b/Desktop/DataScience/TEAM7')
+os.chdir(r'C:\Users\wpy12\OneDrive\Documents\clone\TEAM7')
 appdata = pd.read_csv('AppleStore.csv' ,sep =',' , encoding = 'utf8' )
 appdata.head()
 
@@ -55,27 +55,32 @@ appdata.head()
 #%% [markdown]
 # # Exploratory Data Analysis
 # Look at data and basic descriptive stats
-
+appdata.head()
 appdata.shape
-appdata.describe()
-appdata["price"].describe()
-
+#(7197,16)
+appdata.columns
+# 16 columns in our dataset: five categorical variables, eleven numerical variables(three floats and eight intergers )
 appdata.info()
+# our appdata set has 7197 rows and the non-null count is 7197 which indicates that there is no missing value in our dataset.
+appdata["user_rating"].describe()
+
+#drop unrelated columns
 appdata=appdata.drop(columns=['Unnamed: 0'], axis=1)
 
-appdata.shape
+#appdata.shape
 print(appdata.isnull())
+appdata.isnull().sum()
 print(appdata.dropna())
 appdata.shape
 
 
 #%% [markdown]
 # # Managing our Outliers
-from scipy.stats import zscore
+# from scipy.stats import zscore
 
-price = list(appdata.price)
-plt.boxplot(price)
-plt.show()
+# price = list(appdata.price)
+# plt.boxplot(price)
+# plt.show()
 
 print(np.where(appdata['price']>50))
 new_appdata = appdata[appdata['price'] <5]
@@ -92,6 +97,46 @@ plt.show()
 
 plt.hist(new_appdata['price'])
 
+
+import matplotlib.pyplot as plt
+f,axs = plt.subplots(8,2,figsize=(15,15))
+plt.subplot(3,2,1)
+appdata['user_rating'].plot(kind='hist', title='user_rating')
+plt.subplot(3,2,2)
+appdata['user_rating'].plot(kind= 'box')
+plt.subplot(3,2,3)
+appdata['size_bytes'].plot(kind='hist', title='size_bytes')
+plt.subplot(3,2,4)
+appdata['size_bytes'].plot(kind= 'box')
+plt.subplot(3,2,5)
+appdata['price'].plot(kind='hist', title='price')
+plt.subplot(3,2,6)
+appdata['price'].plot(kind= 'box')
+
+f,axs = plt.subplots(4,2,figsize=(15,15))
+plt.subplot(4,2,1)
+appdata['rating_count_tot'].plot(kind='hist', title='rating_count_tot')
+plt.subplot(4,2,2)
+appdata['rating_count_tot'].plot(kind= 'box')
+#plt.subplot(4,2,3)
+# appdata['cont_rating'].plot(kind='hist', title='cont_rating')
+# plt.subplot(4,2,4)
+# appdata['cont_rating'].plot(kind= 'box')
+# get rid of '+' for con_rating 
+plt.subplot(4,2,5)
+appdata['sup_devices.num'].plot(kind='hist', title='sup_devices.num')
+plt.subplot(4,2,6)
+appdata['sup_devices.num'].plot(kind= 'box')
+plt.subplot(4,2,7)
+appdata['lang.num'].plot(kind='hist', title='lang.num')
+plt.subplot(4,2,8)
+appdata['lang.num'].plot(kind= 'box')
+
+
+sns.boxplot(appdata['user_rating'])
+# Position of the Outlier
+print(np.where(appdata['user_rating']<2))
+sns.boxplot(appdata['price'])
 
 #%% [markdown]
 # # Checking for Normality
@@ -224,6 +269,14 @@ plt.show()
 # avg ratings, free vs paid
 
 #%%
+from statsmodels.formula.api import ols
+modelratingpre = ols(formula='user_rating ~ rating_count_tot + prime_genre + cont_rating', data=dfas)
+modelratingpreFit = modelratingpre.fit()
+print( type(modelratingpreFit) )
+print( modelratingpreFit.summary() )
+
+
+
 
 
 
