@@ -284,9 +284,22 @@ print( modelratingpreFit.summary() )
 
 
 
+#%% [markdown]
+
+# Adhithya Kiran' code - will re arrange when complete 
 
 
 
+new_appdata.columns
+
+#%% [markdown]
+
+# # Mean user rating of an app is :
+
+new_appdata['user_rating_ver'].mean()
+
+
+new_appdata['user_rating_ver'].describe()
 
 
 '''
