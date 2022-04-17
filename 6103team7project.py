@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
+
 #%%
 import pandas as pd
 dfapplestore = pd.read_csv(r'C:\Users\wpy12\OneDrive\Documents\clone\22SP_6103_11T_iDM\project\projectdataset\AppleStore.csv')
