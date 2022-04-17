@@ -1,104 +1,215 @@
 
 # %%
-
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 import seaborn as sns
 from warnings import filterwarnings
 filterwarnings("ignore")
-!pip3 install ppscore
+#!pip3 install ppscore
 import ppscore as pps
 #Import Library RobustScaler
 from sklearn.preprocessing import RobustScaler
 #Cluster Model
 from sklearn.cluster import KMeans 
 from sklearn.metrics import silhouette_score
+import matplotlib.pyplot as plt
+import scipy.stats as stats
+
 
 # %%
 #load_data
-data = pd.read_csv('AppleStore.csv' ,sep =',' , encoding = 'utf8' )
-data.head()
+import os
+os.getcwd()
+os.chdir('/Users/b/Desktop/DataScience/TEAM7')
+appdata = pd.read_csv('AppleStore.csv' ,sep =',' , encoding = 'utf8' )
+appdata.head()
 
-# %%
-#drop column (Unnamed) as semiler ID column
-#data.drop(['Unnamed: 0'], axis=1 ,inplace=True)
-#show data after drop
-
-# %%
-data.head(2)
-
-
-data.info()
-
-
-# %%
-
-#show shape of data 7197 Row and 16 columns
-data.shape
-# %%
-
-data.isnull().sum().sum()
-
-
-
-# %%
-
-data.currency.value_counts()
-# %%
-
-data.nunique()
 
 #%% [markdown]
+# # Mobile App Store 
+# Our research is focused on the 
+#
+# Variables: 
 
-# Exploratory Data Analaysis
+# * "id" : App ID
+# * "track_name": App Name
+# * "size_bytes": Size (in Bytes)
+# * "currency": Currency Type
+# * "price": Price amount
+# * "ratingcounttot": User Rating counts (for all version)
+# * "ratingcountver": User Rating counts (for current version)
+# * "user_rating" : Average User Rating value (for all version)
+# * "userratingver": Average User Rating value (for current version)
+# * "ver" : Latest version code
+# * "cont_rating": Content Rating
+# * "prime_genre": Primary Genre
+# * "sup_devices.num": Number of supporting devices
+# * "ipadSc_urls.num": Number of screenshots showed for display
+# * "lang.num": Number of supported languages
+# * "vpp_lic": Vpp Device Based Licensing Enabled
 
-#  # Visualize price distribution of paid apps ?
+#%% [markdown]
+# # Exploratory Data Analysis
 
-data.price.value_counts()
+#%% [markdown]
+# Look at data descriptive stats
+
+appdata.shape
+appdata.describe()
+appdata["price"].describe()
+
+appdata.info()
+appdata=appdata.drop(columns=['Unnamed: 0'], axis=1)
 
 
-# %%
+#%% [markdown]
+# # Managing our Outliers
+from scipy.stats import zscore
 
-free_apps = data[(data.price==0.00)]
+price = list(appdata.price)
+plt.boxplot(price)
+plt.show()
 
-paid_apps  = data[(data.price>0)]
+print(np.where(appdata['price']>50))
+new_appdata = appdata[appdata['price'] <5]
+print(new_appdata.head(15))
 
-free_apps.head(2)
+new_appdata.shape
+new_appdata.describe()
+new_appdata["price"].describe()
+new_appdata.info()
+
+newprice = list(new_appdata.price)
+plt.boxplot(newprice)
+plt.show()
+
+plt.hist(new_appdata['price'])
+
+
+#%%
+#create new var based on price
+price_categories = new_appdata['price'].map(lambda price: 'free' if price <= 0 else 'paid')
+new_appdata['price_cat'] = price_categories
+
+#create new var based on price
+rating_categories = new_appdata['user_rating'].map(lambda ratings: 'high' if ratings >=4 else 'low')
+new_appdata['ratings_cat'] = rating_categories
+
+#create new var based on ratings
+new_appdata.groupby('price_cat').describe()
+new_appdata.groupby('ratings_cat').describe()
+
+
+# Correlation Matrix
+#%% 
+new_appdata.corr()
+corrMatrix = new_appdata.corr()
+print (corrMatrix)
+
+
+corrMatrix = new_appdata.corr()
+sns.heatmap(corrMatrix, annot=True)
+plt.show()
+
+
+#weak correlation between size and price
+price_sizecorr = np.corrcoef(new_appdata.size_bytes, new_appdata.price)
+price_sizecorr
+
+new_appdata.plot('price', 'size_bytes', kind='scatter', marker='o') # OR
+# plt.plot(df.age, df.rincome, 'o') # if you put marker='o' here, you will get line plot?
+plt.ylabel('App size')
+plt.xlabel('Price')
+plt.show()
+
+
+#Graph 1
+#%%
+maxvals = new_appdata.max()
+print(maxvals)
+
+pricecategory = new_appdata['price_cat'].value_counts()
+pricecategory.plot(kind='bar')
+plt.title("Number of Apps, by Price Category")
+plt.xlabel("Price Category")
+plt.ylabel("Number of Apps")
+current_values = plt.gca().get_yticks()
+plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
+plt.show()
+
+
+# Graph 2
+
+#%%
+ratingscol = 'ratings_cat'
+new_appdata.groupby(['price_cat', ratingscol]).size().unstack(level=1).plot(kind='bar')
+current_values = plt.gca().get_yticks()
+plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
+plt.title('Number of Apps by Price Category and Ratings Category')
+plt.ylabel('Number of Apps')
+plt.show()
+
+# Graph 3
 
 #%%
 
-paid_apps.head(2)
+plt.style.use('dark_background')
+fig = plt.figure(figsize=(10, 5))
+highratings = new_appdata[new_appdata['ratings_cat'] == 'high']
+lowratings = new_appdata[new_appdata['ratings_cat'] == 'low']
 
-paid_apps.price.value_counts()
+
+ax = sns.kdeplot(highratings['price'], color ='White', label='Apps with High Ratings', shade=False)
+ax = sns.kdeplot(lowratings['price'], color='Red', label='Apps with Low Ratings', shade=False)
+
+plt.yticks([])
+plt.title('Price Distribution by User Ratings')
+plt.ylabel('')
+plt.xlabel('Price')
+plt.xlim(0, 10)
+plt.legend(loc="upper left")
+current_values = plt.gca().get_xticks()
+plt.gca().set_xticklabels(['{:,.0f}'.format(x) for x in current_values])
+plt.show()
+
+# Graph 4
+
+#%%
+# remianing Graphs
+# Total apps per group(var)
+# average ratings per group(var)
+# App Price by genre category (what genre cost the most?)
+# avg ratings, free vs paid
+
+#%%
+
+
+
+
+
+
+
+
+
+'''
+#********************************SOMEONE'S OLD CODE*******************************
 
 #%% [markdown]
 
-# The number of apps decreases with increasing his price
-
-free_apps.price.value_counts()
-
-# %%
-
-sns.distplot(free_apps['price'])
-
-# %%
-
-sns.distplot(paid_apps['price'])
-
-# %%
-
-sns.histplot(paid_apps['price'])
-
-# %%
-
-plt.style.use('fivethirtyeight')
-plt.figure(figsize=(6,4))
-
-plt.subplot(2,1,2)
-plt.title('Visual price distribution')
-sns.stripplot(data=paid_apps,y='price',jitter= True,orient = 'h' ,size=6)
+# Top Price in important Category (Business , Navigation , Education , Productivity )
+#  in another side price for all of apps less than 50 USD
+# Education Apps has a higher price 
+# Shopping Apps has a lower price
+#%%
+#
+plt.figure(figsize=(10,5))
+plt.scatter(y=paid_apps.prime_genre ,x=paid_apps.price,c='DarkBlue')
+plt.title('Price & Category')
+plt.xlabel('Price')
+plt.ylabel('Category')
 plt.show()
+
 
 #%% [markdown]
 
@@ -192,22 +303,4 @@ new_data_cate.tail(10)
 #%%
 
 sns.barplot(x= '# of Apps' , y = 'prime_genre' , data = new_data_cate.tail(10))
-
-
-#%%
-
-plt.figure(figsize=(10,5))
-plt.scatter(y=paid_apps.prime_genre ,x=paid_apps.price,c='DarkBlue')
-plt.title('Price & Category')
-plt.xlabel('Price')
-plt.ylabel('Category')
-plt.show()
-
-
-#%% [markdown]
-
-# Top Price in important Category (Business , Navigation , Education , Productivity )
-#  in another side price for all of apps less than 50 USD
-# Education Apps has a higher price 
-# Shopping Apps has a lower price
-
+'''
