@@ -24,7 +24,7 @@ from  scipy.stats import spearmanr
 #load_data
 import os
 os.getcwd()
-#os.chdir(r'C:\Users\wpy12\OneDrive\Documents\clone\TEAM7')
+os.chdir('/Users/b/Desktop/DataScience/TEAM7')
 appdata = pd.read_csv('AppleStore.csv' ,sep =',' , encoding = 'utf8' )
 appdata.head()
 
@@ -55,95 +55,44 @@ appdata.head()
 #%% [markdown]
 # # Exploratory Data Analysis
 # Look at data and basic descriptive stats
-appdata.head()
+
 appdata.shape
-#(7197,16)
-appdata.columns
-# 16 columns in our dataset: five categorical variables, eleven numerical variables(three floats and nine intergers )
+appdata.describe()
+appdata["price"].describe()
+
 appdata.info()
-# our appdata set has 7197 rows and the non-null count is 7197 which indicates that there is no missing value in our dataset.
-appdata["user_rating"].describe()
-
-
-#drop unrelated columns
 appdata=appdata.drop(columns=['Unnamed: 0'], axis=1)
 
-#double check missing value
-appdata.isnull().sum()
-# No missing values found 
+appdata.shape
+appdata.isnull()
+appdata.dropna()
+appdata.shape
 
-# #rename some variables in order to make it simple and more sense
-# appdata.rename(columns={"size_bytes":"Size","price":"Price","rating_count_tot":"Rating_Count", "user_rating":"Rating", "cont_rating": "Content_Rating", "prime_genre":"App_type", "sup_devices.num":"Devices_Count", "lang.num":"language_Count" } ,inplace=True)
-# appdata.head()
-# #appdata['Content_Rating'] = [x.strip('+') for x in appdata.Content_Rating]
-# appdata['Rating'] = [round(x,1) for x in appdata['Rating']]
 
 #%% [markdown]
 # # Managing our Outliers
-import matplotlib.pyplot as plt
-f,axs = plt.subplots(8,2,figsize=(15,15))
-plt.subplot(3,2,1)
-appdata['user_rating'].plot(kind='hist', title='user_rating')
-plt.subplot(3,2,2)
-appdata['user_rating'].plot(kind= 'box')
-plt.subplot(3,2,3)
-appdata['size_bytes'].plot(kind='hist', title='size_bytes')
-plt.subplot(3,2,4)
-appdata['size_bytes'].plot(kind= 'box')
-plt.subplot(3,2,5)
-appdata['price'].plot(kind='hist', title='Price')
-plt.subplot(3,2,6)
-appdata['price'].plot(kind= 'box')
-
-# f,axs = plt.subplots(3,2,figsize=(15,15))
-# plt.subplot(3,2,1)
-# appdata['rating_count_tot'].plot(kind='hist', title='rating_count_tot')
-# plt.subplot(3,2,2)
-# appdata['rating_count_tot'].plot(kind= 'box')
-# # plt.subplot(4,2,3)
-# # appdata['Content_Rating'].plot(kind='hist', title='Content_Rating')
-# # plt.subplot(4,2,4)
-# # appdata['Content_Rating'].plot(kind= 'box')
-# plt.subplot(3,2,3)
-# appdata['sup_devices.num'].plot(kind='hist', title='sup_devices.num')
-# plt.subplot(3,2,4)
-# appdata['sup_devices.num'].plot(kind= 'box')
-# plt.subplot(3,2,5)
-# appdata['lang.num'].plot(kind='hist', title='lang.num')
-# plt.subplot(3,2,6)
-# appdata['lang.num'].plot(kind= 'box')
-
-# Rating data is not normally distributed. Instead, the Rating data seems to be left-skewed. We will try to log-transform the data into log(Rating).
+from scipy.stats import zscore
 
 
-#%%
-# appdata['Rating'].apply(np.log).hist()
-# Wanted to use log transformation first but some errors ourrced, need to fix it 
-#appdata['Rating'].apply(np.exp).hist()
-# expenentially tranformation is not fit here.
-appdata['user_rating'].apply(np.log).plot(kind='box')
-#after normalizting it, it turned out there is some outliers in the transformed Rating data. We need to indentiy these data points before deciding to remove or keep the ourliers. 
+# * Price Outliers
+price = list(appdata.price)
+plt.style.use('dark_background')
+sns.boxplot(price)
+plt.show()
+sns.distplot(appdata['price'], bins=20)
+plt.savefig('pricebeforeoutliers.png')
 
-# Adding the transformed Rating data to the dataset, and name it log_rating.
-appdata['log_rating'] = appdata['user_rating'].apply(np.log)
+# Mean and Standard Deviation
+mean = appdata.price.mean()
+std= appdata.price.std() 
 
-# Define a function to locate outliers: to find data with difference from sample mean bigger than twice the standard deviation
-# def locate_outliers(data,n):
-#     return data[abs(data[n] -np.mean(data[n])) > 2 * np.std(data[n])]
-# locate_outliers(appdata,'log_rating').head(5)
-# there is no data with difference from sample mean bigger than twice the standard deviation. The outliers in the boxplot are NOT satisfied as outliers with our ourlier definition.
-# locate_outliers(appdata,'Price').head(5)
-# locate_outliers(appdata,'Price').describe()
-# # the min of outlier is 13.99.
-
-
-
-
-# print(np.where(appdata['price']>50))
-new_appdata = appdata[appdata['price'] <13.99]
-print(new_appdata.head(15))
-# Since the min of outlier is 13.99 and we want to exclude all the outliers that over 13.99 
-
+# identify outliers
+cutoff = 2.5*std
+lowerbound= mean-cutoff
+upperbound=mean+cutoff
+appdata.shape
+new_appdata = appdata[appdata['price'] >=lowerbound]
+new_appdata = appdata[appdata['price'] <=upperbound]
 
 new_appdata.shape
 new_appdata.describe()
@@ -153,15 +102,8 @@ new_appdata.info()
 newprice = list(new_appdata.price)
 plt.boxplot(newprice)
 plt.show()
-
-plt.hist(new_appdata['price'])
-
-
-# sns.boxplot(appdata['log_rating'])
-# # Position of the Outlier
-# print(np.where(appdata['log_rating']<2))
-# sns.boxplot(appdata['Price'])
-
+sns.distplot(new_appdata['price'], bins=20)
+plt.savefig('priceafteroutliers.png')
 
 
 #%% [markdown]
@@ -185,7 +127,6 @@ print('Count of ratings for current version, Statistics=%.3f, p=%.3f' %(stat,p))
 stat, p = shapiro(new_appdata['user_rating'])
 print('User ratings, Statistics=%.3f, p=%.3f' %(stat,p))
 
-
 stat, p = shapiro(new_appdata['sup_devices.num'])
 print('Number of Supporting Devices, Statistics=%.3f, p=%.3f' %(stat,p))
 
@@ -204,40 +145,35 @@ print('Number of Screenshots showed for Display , Statistics=%.3f, p=%.3f' %(sta
 price_categories = new_appdata['price'].map(lambda price: 'free' if price <= 0 else 'paid')
 new_appdata['price_cat'] = price_categories
 
-#create new var based on price
+#create new var based on rating
 rating_categories = new_appdata['user_rating'].map(lambda ratings: 'high' if ratings >=4 else 'low')
 new_appdata['ratings_cat'] = rating_categories
 
-#create new var based on ratings
+#look into new variables
 new_appdata.groupby('price_cat').describe()
 new_appdata.groupby('ratings_cat').describe()
 
+#%% [markdown]
+# #Correlation Matrix
+# Since we have data that is not normally distributed, we use Spearman
+import seaborn as sns # For pairplots and heatmaps
+import matplotlib.pyplot as plt
 
-# Correlation Matrix
-#%% 
-new_appdata.corr()
-corrMatrix = new_appdata.corr()
+corrMatrix = new_appdata.corr(method="spearman")
 print (corrMatrix)
 
-
-corrMatrix = new_appdata.corr()
-sns.heatmap(corrMatrix, annot=True)
-plt.show()
-
+plt.figure(figsize=(10,6))
+heatmap = sns.heatmap(new_appdata.corr(), vmin=-1,vmax=1, annot=True)
+plt.title("Spearman Correlation")
+plt.savefig('corrplot.png') 
 
 #weak correlation between size and price
 price_sizecorr = np.corrcoef(new_appdata.size_bytes, new_appdata.price)
 price_sizecorr
 
-new_appdata.plot('price', 'size_bytes', kind='scatter', marker='o') # OR
-# plt.plot(df.age, df.rincome, 'o') # if you put marker='o' here, you will get line plot?
-plt.ylabel('App size')
-plt.xlabel('Price')
-plt.show()
+#%% [markdown]
+# #Graph 1
 
-
-#Graph 1
-#%%
 maxvals = new_appdata.max()
 print(maxvals)
 
@@ -251,20 +187,23 @@ plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
 plt.show()
 
 
-# Graph 2
+#%% [markdown]
+# #Graph 2
 
-#%%
 ratingscol = 'ratings_cat'
 new_appdata.groupby(['price_cat', ratingscol]).size().unstack(level=1).plot(kind='bar')
 current_values = plt.gca().get_yticks()
 plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
-plt.title('Number of Apps by Price Category and Ratings Category')
+plt.title('Number of Apps, by Price Category and Ratings Category')
 plt.ylabel('Number of Apps')
-plt.show()
+plt.xlabel('Price Category')
+plt.savefig('g2.png') 
 
-# Graph 3
 
-#%%
+
+#%% [markdown]
+# #Graph 3
+
 
 plt.style.use('dark_background')
 fig = plt.figure(figsize=(10, 5))
@@ -283,16 +222,85 @@ plt.xlim(0, 10)
 plt.legend(loc="upper left")
 current_values = plt.gca().get_xticks()
 plt.gca().set_xticklabels(['{:,.0f}'.format(x) for x in current_values])
-plt.show()
+plt.savefig('g3.png') 
 
-# Graph 4
+
+#%% [markdown]
+# #Graph 4
+new_appdata.info()
+
+pricecategory = new_appdata['prime_genre'].value_counts()
+pricecategory.plot(kind='bar')
+plt.title("Number of Apps, by Genre")
+plt.xlabel("")
+plt.ylabel("Number of Apps")
+current_values = plt.gca().get_yticks()
+plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
+plt.tight_layout()
+plt.savefig('g4.png') 
+
+#%% [markdown]
+# #Graph 5
+
+from matplotlib.ticker import StrMethodFormatter
+
+new_appdata.info()
+
+
+new_appdata_graph = new_appdata.groupby('prime_genre').mean()
+plt.bar(new_appdata_graph.index, new_appdata_graph['user_rating'])
+plt.xlabel('Genre')
+plt.ylabel('Average Ratings')
+plt.title('Average Ratings, by Genre')
+current_values = plt.gca().get_yticks()
+plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
+plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.2f}')) 
+plt.xticks(rotation = 90)
+plt.tight_layout()
+plt.savefig('g5.png') 
+
+
+
+
+
+#%% [markdown]
+# #Graph 6
+# App Price by genre category (what genre cost the most?)
+
+new_appdata_graph = new_appdata.groupby('prime_genre').mean()
+plt.bar(new_appdata_graph.index, new_appdata_graph['price'])
+plt.xlabel('Genre')
+plt.ylabel('Average Price')
+plt.title('Average Price, by Genre')
+current_values = plt.gca().get_yticks()
+plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
+plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.2f}')) 
+plt.xticks(rotation = 90)
+plt.tight_layout()
+plt.savefig('g6.png') 
+
+
+#%% [markdown]
+# #Graph 7
+# avg ratings, free vs paid
+new_appdata_graphf = new_appdata.groupby('price_cat').mean()
+plt.bar(new_appdata_graphf.index, new_appdata_graphf['user_rating'], color='grey', edgecolor='darkblue')
+plt.xlabel('Price Category')
+plt.ylabel('Average Ratings')
+plt.title('Average Ratings, Free vs. Paid')
+current_values = plt.gca().get_yticks()
+plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
+plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.2f}')) 
+plt.savefig('g7.png') 
 
 #%%
-# remianing Graphs
-# Total apps per group(var)
-# average ratings per group(var)
-# App Price by genre category (what genre cost the most?)
-# avg ratings, free vs paid
+new_appdata.info()
+
+#var for models
+new_appdata['price_cat'].replace(['free','paid'],[0,1],inplace=True)
+new_appdata['ratings_cat'].replace(['low','high'],[0,1],inplace=True)
+
+
 
 #%%
 # from statsmodels.formula.api import ols
