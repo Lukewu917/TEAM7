@@ -24,7 +24,7 @@ from  scipy.stats import spearmanr
 #load_data
 import os
 os.getcwd()
-os.chdir(r'C:\Users\wpy12\OneDrive\Documents\clone\TEAM7')
+#os.chdir(r'C:\Users\wpy12\OneDrive\Documents\clone\TEAM7')
 appdata = pd.read_csv('AppleStore.csv' ,sep =',' , encoding = 'utf8' )
 appdata.head()
 
@@ -150,7 +150,7 @@ new_appdata.describe()
 new_appdata["price"].describe()
 new_appdata.info()
 
-newprice = list(new_appdata.Price)
+newprice = list(new_appdata.price)
 plt.boxplot(newprice)
 plt.show()
 
@@ -362,123 +362,176 @@ new_appdata.columns
 
 #%% [markdown]
 
+# source :  https://www.business2community.com/mobile-apps/app-ratings-and-reviews-2021-benchmarks-02396808
+
+
 # # Mean user rating of an app is :
 
-new_appdata['user_rating_ver'].mean()
+print(new_appdata['user_rating'].mean())
 
 
-new_appdata['user_rating_ver'].describe()
+print(new_appdata['user_rating'].describe())
+
+i = 0
+
+new_appdata['Good_Bad'] = 1
+
+for element in new_appdata['user_rating']:
+
+    if (element >= 4.5):
+
+        new_appdata['Good_Bad'][i] = 1
+
+        i = i+1
+
+    else :
+
+        new_appdata['Good_Bad'][i] = 0
+
+        i = i+1
 
 
-'''
-#********************************SOMEONE'S OLD CODE*******************************
+
+print(new_appdata['Good_Bad'])
 
 #%% [markdown]
 
-# Top Price in important Category (Business , Navigation , Education , Productivity )
-#  in another side price for all of apps less than 50 USD
-# Education Apps has a higher price 
-# Shopping Apps has a lower price
-#%%
-#
-plt.figure(figsize=(10,5))
-plt.scatter(y=paid_apps.prime_genre ,x=paid_apps.price,c='DarkBlue')
-plt.title('Price & Category')
-plt.xlabel('Price')
-plt.ylabel('Category')
-plt.show()
+print(new_appdata['track_name'].describe()) 
 
-
-#%% [markdown]
-
-#from this graph The number of apps that have a price greater than 50 is few compared to before 50 USD
-# %%
-
-
-Top_Apps=paid_apps[paid_apps.price>50][['track_name','price','prime_genre','user_rating']]
-Top_Apps
-#7 Top apps with price, prime_genre and user rating
-
-
-# %% [markdown]
-
-# Top 7 apps on the basis of price
-
-
-def visualizer(x, y, plot_type, title, xlabel, ylabel, rotation=False, rotation_value=60, figsize=(15,8)):
-    plt.figure(figsize=figsize)
-    
-    if plot_type == "bar":  
-        sns.barplot(x=x, y=y)
-    elif plot_type == "count":  
-        sns.countplot(x)
-   
-    plt.title(title, fontsize=20)
-    plt.xlabel(xlabel, fontsize=18)
-    plt.ylabel(ylabel, fontsize=18)
-    plt.yticks(fontsize=13)
-    if rotation == True:
-        plt.xticks(fontsize=13,rotation=rotation_value)
-    plt.show()
-
-# %%
-
-Top_Apps = Top_Apps.sort_values('price', ascending=False)
-
-visualizer(Top_Apps.price,Top_Apps.track_name, "bar", "TOP 7 APPS ON THE BASIS OF PRICE","Price (in USD)","APP NAME")
-#names of track in y axis to be readable    
-
-
-# %%
-
-paid_apps.head(2)
-
-# %%
-
-#sum of all paid apps 
-sum_paid = paid_apps.price.value_counts().sum()
-sum_paid
-
-# %%
-
-#sum of all free apps
-sum_free = free_apps.price.value_counts().sum()
-sum_free
+# Unique elements are 7109 out of 7111 count, so dropping.
 
 
 #%% [markdown]
 
-# How does the price distribution get affected by category ?
+#to catagorical
 
-data.prime_genre.value_counts()
+new_appdata['Good_Bad'] = pd.Categorical(new_appdata.Good_Bad)
+
+new_appdata['prime_genre'] = pd.Categorical(new_appdata.prime_genre)
+
+new_appdata['price_cat'] = pd.Categorical(new_appdata.price_cat)
+
+
+new_appdata['ratings_cat'] = pd.Categorical(new_appdata.ratings_cat)
+
 
 #%% [markdown]
 
-# Top app category is Games Games  is 3862 and Entertainment  is 535
-
-data.head()
-
-#%%
-
-new_data_cate = data.groupby([data.prime_genre])[['id']].count().reset_index().sort_values('id' ,ascending = False)
-new_data_cate.columns = ['prime_genre','# of Apps']
-new_data_cate.head()
-#Categories and number of apps in each category
 
 
-#%%
 
-#Top_Categories accorrding number of apps
-new_data_cate.head(10)
+#%% [markdown]
 
 
-sns.barplot(y = 'prime_genre',x = '# of Apps', data=new_data_cate.head(10))
+# label encoding for categorcial varibales 
+
+# from sklearn.preprocessing import OrdinalEncoder
+# OrdinalEncoder = OrdinalEncoder()
+
+# # Assigning numerical values and storing in another column
+# new_appdata['price_cat_en'] = OrdinalEncoder.fit_transform(new_appdata['price_cat'])
+# # print(new_appdata['price_cat_en'])
 
 
-#Lower Categories according number of apps Categories unpopular
-new_data_cate.tail(10)
+# new_appdata['ratings_cat_en'] = labelencoder.fit_transform(new_appdata['ratings_cat'])
+# print(new_appdata['ratings_cat_en'])
 
-#%%
 
-sns.barplot(x= '# of Apps' , y = 'prime_genre' , data = new_data_cate.tail(10))
-'''
+# new_appdata['prime_genre_en'] = labelencoder.fit_transform(new_appdata['prime_genre'])
+# print(new_appdata['prime_genre_en'])
+
+# new_appdata['cont_rating_en'] = labelencoder.fit_transform(new_appdata['cont_rating'])
+# print(new_appdata['cont_rating_en'])
+
+# new_appdata['Good_Bad'] = 0
+
+# i = 0
+
+# for e in new_appdata['cont_rating']:
+
+#     if (e == 4+):
+
+#         new_appdata['Good_Bad'] = 0
+
+#         i = i+1
+
+#     if (e == 12+):
+
+#         new_appdata['Good_Bad'] = 0
+
+#         i = i+1
+
+#      if (e == 9+):
+
+#         new_appdata['Good_Bad'] = 0
+
+#         i = i+1
+
+#      if (e == 17+):
+
+#         new_appdata['Good_Bad'] = 0
+
+#         i = i+1
+
+
+#     else :
+
+#         return              
+
+
+
+from sklearn.preprocessing import OrdinalEncoder
+
+ord_enc = OrdinalEncoder()
+new_appdata["genre_en"] = ord_enc.fit_transform(new_appdata[["prime_genre"]])
+new_appdata[["prime_genre", "genre_en"]].head(11)
+
+new_appdata["cont_rating_en"] = ord_enc.fit_transform(new_appdata[["cont_rating"]])
+new_appdata[["cont_rating", "cont_rating_en"]].head(11)
+
+
+#%% 
+
+new_appdata["price_cat_en"] = ord_enc.fit_transform(new_appdata[["price_cat"]])
+new_appdata[["price_cat", "price_cat_en"]].head(11)
+
+new_appdata["ratings_cat_en"] = ord_enc.fit_transform(new_appdata[["ratings_cat"]])
+new_appdata[["ratings_cat", "ratings_cat_en"]].head(11)
+
+#%% [markdown]
+
+from sklearn.feature_selection import RFE
+from sklearn.linear_model import LogisticRegression
+
+new_appdata['log_rating'].round(decimals = 2)
+
+X = new_appdata.drop('Good_Bad', axis=1)
+X = X.drop('id', axis=1)
+X = X.drop('track_name', axis=1)
+X = X.drop('currency', axis=1)
+X = X.drop('price_cat', axis=1)
+X = X.drop('ratings_cat', axis=1)
+X = X.drop('prime_genre', axis=1)
+X = X.drop('cont_rating', axis=1)
+X = X.drop('rating_count_tot', axis=1)
+X = X.drop('ver', axis=1)
+X.replace([np.inf, -np.inf], np.nan, inplace=True)
+Y.replace([np.inf, -np.inf], np.nan, inplace=True)
+
+Y = new_appdata['Good_Bad']
+
+X['log_rating'].round(decimals = 2)
+
+X['size_bytes'] = X['size_bytes'].div(1000000).round(2)
+X.fillna(-99999, inplace=True)
+
+model = LogisticRegression()
+rfe = RFE(model, 3)
+fit = rfe.fit(X, Y)
+print("Num Features: %s" % (fit.n_features_))
+print("Selected Features: %s" % (fit.support_))
+print("Feature Ranking: %s" % (fit.ranking_))
+
+
+
+# %%
