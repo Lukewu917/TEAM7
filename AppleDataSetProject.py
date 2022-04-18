@@ -592,4 +592,87 @@ print(rfe.ranking_)
 # |                  	|                     	|   	|              	|   	|            	|
 
 
+# %% [markdown]
+# When using with 3 features
+
+from sklearn.feature_selection import RFE
+from sklearn.linear_model import LogisticRegression
+
+# Logistic regression 
+
+model = LogisticRegression()
+rfe = RFE(model, 3)
+fit = rfe.fit(X, Y)
+print("Num Features for logisitic regression classifier: %s" % (fit.n_features_))
+print(X.columns)
+print("Selected Features logisitic regression classifier: %s" % (fit.support_))
+print("Feature Ranking logisitic regression classifier: %s" % (fit.ranking_))
+
+
+
+
+#%% [markdown]
+# Decision Tree
+
+from sklearn.feature_selection import RFE
+
+# y=cancer_ds.Biopsy.values
+# cancer_ds=cancer_ds.drop(['Biopsy'],axis=1)
+
+
+# x=cancer_ds.as_matrix()
+# colnames=cancer_ds.columns
+from sklearn.tree import DecisionTreeClassifier
+rfe = RFE(estimator=DecisionTreeClassifier(), n_features_to_select=3)
+# fit the model
+fit = rfe.fit(X, Y)
+
+print("Num Features for DecisionTree classifier: %s" % (fit.n_features_))
+print("Selected Features DecisionTree classifier: %s" % (fit.support_))
+print(X.columns)
+print("Feature Ranking DecisionTree classifier: %s" % (fit.ranking_))
+
+
+
+# transform the data
+# X, Y = rfe.transform(X, Y)
+
+#%% [markdown]
+
+# Linear svc
+
+from sklearn.feature_selection import RFE
+from sklearn.svm import LinearSVC
+
+
+svm = LinearSVC()
+# create the RFE model for the svm classifier 
+# and select attributes
+rfe = RFE(svm, 3)
+rfe = rfe.fit(X,Y)
+# print summaries for the selection of attributes
+print(rfe.support_)
+print(X.columns)
+print(rfe.ranking_)
+
+#%% [markdown]
+# Feature when 3 features are selected 
+
+# | Features         	| Logistic regression 	|   	| DecisionTree 	|   	| Linear SVC 	|
+# |------------------	|---------------------	|---	|--------------	|---	|------------	|
+# | size_bytes       	|                     	|   	| T            	|   	|            	|
+# | rating_count_ver 	|                     	|   	| T            	|   	|            	|
+# | user_rating      	|                     	|   	|              	|   	|            	|
+# | user_rating_ver  	|                     	|   	|              	|   	|            	|
+# | sup_devices.num  	|                     	|   	|              	|   	|            	|
+# | ipadSc_urls.num  	|                     	|   	|              	|   	|            	|
+# | lang.num         	|                     	|   	|              	|   	|            	|
+# | vpp_lic          	| T                   	|   	|              	|   	| T          	|
+# | log_rating       	|                     	|   	|              	|   	|            	|
+# | genre_en         	|                     	|   	| T            	|   	|            	|
+# | cont_rating_en   	| T                   	|   	|              	|   	| T          	|
+# | ratings_cat_en   	| T                   	|   	|              	|   	| T          	|
+# |                  	|                     	|   	|              	|   	|            	|
+# |                  	|                     	|   	|              	|   	|            	|
+# |                  	|                     	|   	|              	|   	|            	|
 # %%
