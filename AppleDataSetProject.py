@@ -510,20 +510,25 @@ X['log_rating'].round(decimals = 2)
 X['size_bytes'] = X['size_bytes'].div(1000000).round(2)
 X.fillna(-99999, inplace=True)
 
+#%% [markdown]
+
+# Logistic regression 
+
 model = LogisticRegression()
 rfe = RFE(model, 3)
 fit = rfe.fit(X, Y)
-print("Num Features: %s" % (fit.n_features_))
-print("Selected Features: %s" % (fit.support_))
-print("Feature Ranking: %s" % (fit.ranking_))
+print("Num Features for logisitic regression classifier: %s" % (fit.n_features_))
+print(X.columns)
+print("Selected Features logisitic regression classifier: %s" % (fit.support_))
+print("Feature Ranking logisitic regression classifier: %s" % (fit.ranking_))
 
 
 
 
-# %%
+#%% [markdown]
+# Decision Tree
+
 from sklearn.feature_selection import RFE
-from sklearn.ensemble import RandomForestClassifier
-
 
 # y=cancer_ds.Biopsy.values
 # cancer_ds=cancer_ds.drop(['Biopsy'],axis=1)
@@ -531,21 +536,35 @@ from sklearn.ensemble import RandomForestClassifier
 
 # x=cancer_ds.as_matrix()
 # colnames=cancer_ds.columns
+from sklearn.tree import DecisionTreeClassifier
+rfe = RFE(estimator=DecisionTreeClassifier(), n_features_to_select=3)
+# fit the model
+fit = rfe.fit(X, Y)
+
+print("Num Features for DecisionTree classifier: %s" % (fit.n_features_))
+print("Selected Features DecisionTree classifier: %s" % (fit.support_))
+print(X.columns)
+print("Feature Ranking DecisionTree classifier: %s" % (fit.ranking_))
 
 
-model= RandomForestClassifier()
-model.fit(X,Y)
+
+# transform the data
+# X, Y = rfe.transform(X, Y)
+
+#%% [markdown]
+
+# Linear svc
+
+from sklearn.feature_selection import RFE
+from sklearn.svm import LinearSVC
 
 
-rfe=RFE(model,n_features_to_select=3,verbose=2)
-
-
-fit=rfe.fit(X,Y)
-# %%
-
-print("Num Features: %s" % (fit.n_features_))
-print("Selected Features: %s" % (fit.support_))
-print("Feature Ranking: %s" % (fit.ranking_))
-# %%
-
-
+svm = LinearSVC()
+# create the RFE model for the svm classifier 
+# and select attributes
+rfe = RFE(svm, 3)
+rfe = rfe.fit(X,Y)
+# print summaries for the selection of attributes
+print(rfe.support_)
+print(X.columns)
+print(rfe.ranking_)
