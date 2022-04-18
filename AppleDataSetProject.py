@@ -72,46 +72,46 @@ appdata=appdata.drop(columns=['Unnamed: 0'], axis=1)
 appdata.isnull().sum()
 # No missing values found 
 
-#rename some variables in order to make it simple and more sense
-appdata.rename(columns={"size_bytes":"Size","price":"Price","rating_count_tot":"Rating_Count", "user_rating":"Rating", "cont_rating": "Content_Rating", "prime_genre":"App_type", "sup_devices.num":"Devices_Count", "lang.num":"language_Count" } ,inplace=True)
-appdata.head()
-#appdata['Content_Rating'] = [x.strip('+') for x in appdata.Content_Rating]
-appdata['Rating'] = [round(x,1) for x in appdata['Rating']]
+# #rename some variables in order to make it simple and more sense
+# appdata.rename(columns={"size_bytes":"Size","price":"Price","rating_count_tot":"Rating_Count", "user_rating":"Rating", "cont_rating": "Content_Rating", "prime_genre":"App_type", "sup_devices.num":"Devices_Count", "lang.num":"language_Count" } ,inplace=True)
+# appdata.head()
+# #appdata['Content_Rating'] = [x.strip('+') for x in appdata.Content_Rating]
+# appdata['Rating'] = [round(x,1) for x in appdata['Rating']]
 
 #%% [markdown]
 # # Managing our Outliers
 import matplotlib.pyplot as plt
 f,axs = plt.subplots(8,2,figsize=(15,15))
 plt.subplot(3,2,1)
-appdata['Rating'].plot(kind='hist', title='Rating')
+appdata['user_rating'].plot(kind='hist', title='user_rating')
 plt.subplot(3,2,2)
-appdata['Rating'].plot(kind= 'box')
+appdata['user_rating'].plot(kind= 'box')
 plt.subplot(3,2,3)
-appdata['Size'].plot(kind='hist', title='Size')
+appdata['size_bytes'].plot(kind='hist', title='size_bytes')
 plt.subplot(3,2,4)
-appdata['Size'].plot(kind= 'box')
+appdata['size_bytes'].plot(kind= 'box')
 plt.subplot(3,2,5)
-appdata['Price'].plot(kind='hist', title='Price')
+appdata['price'].plot(kind='hist', title='Price')
 plt.subplot(3,2,6)
-appdata['Price'].plot(kind= 'box')
+appdata['price'].plot(kind= 'box')
 
-f,axs = plt.subplots(3,2,figsize=(15,15))
-plt.subplot(3,2,1)
-appdata['Rating_Count'].plot(kind='hist', title='Rating_Count')
-plt.subplot(3,2,2)
-appdata['Rating_Count'].plot(kind= 'box')
-# plt.subplot(4,2,3)
-# appdata['Content_Rating'].plot(kind='hist', title='Content_Rating')
-# plt.subplot(4,2,4)
-# appdata['Content_Rating'].plot(kind= 'box')
-plt.subplot(3,2,3)
-appdata['Devices_Count'].plot(kind='hist', title='Devices_Count')
-plt.subplot(3,2,4)
-appdata['Devices_Count'].plot(kind= 'box')
-plt.subplot(3,2,5)
-appdata['language_Count'].plot(kind='hist', title='language_Count')
-plt.subplot(3,2,6)
-appdata['language_Count'].plot(kind= 'box')
+# f,axs = plt.subplots(3,2,figsize=(15,15))
+# plt.subplot(3,2,1)
+# appdata['rating_count_tot'].plot(kind='hist', title='rating_count_tot')
+# plt.subplot(3,2,2)
+# appdata['rating_count_tot'].plot(kind= 'box')
+# # plt.subplot(4,2,3)
+# # appdata['Content_Rating'].plot(kind='hist', title='Content_Rating')
+# # plt.subplot(4,2,4)
+# # appdata['Content_Rating'].plot(kind= 'box')
+# plt.subplot(3,2,3)
+# appdata['sup_devices.num'].plot(kind='hist', title='sup_devices.num')
+# plt.subplot(3,2,4)
+# appdata['sup_devices.num'].plot(kind= 'box')
+# plt.subplot(3,2,5)
+# appdata['lang.num'].plot(kind='hist', title='lang.num')
+# plt.subplot(3,2,6)
+# appdata['lang.num'].plot(kind= 'box')
 
 # Rating data is not normally distributed. Instead, the Rating data seems to be left-skewed. We will try to log-transform the data into log(Rating).
 
@@ -121,40 +121,40 @@ appdata['language_Count'].plot(kind= 'box')
 # Wanted to use log transformation first but some errors ourrced, need to fix it 
 #appdata['Rating'].apply(np.exp).hist()
 # expenentially tranformation is not fit here.
-appdata['Rating'].apply(np.log).plot(kind='box')
+appdata['user_rating'].apply(np.log).plot(kind='box')
 #after normalizting it, it turned out there is some outliers in the transformed Rating data. We need to indentiy these data points before deciding to remove or keep the ourliers. 
 
 # Adding the transformed Rating data to the dataset, and name it log_rating.
-appdata['log_rating'] = appdata['Rating'].apply(np.log)
+appdata['log_rating'] = appdata['user_rating'].apply(np.log)
 
 # Define a function to locate outliers: to find data with difference from sample mean bigger than twice the standard deviation
-def locate_outliers(data,n):
-    return data[abs(data[n] -np.mean(data[n])) > 2 * np.std(data[n])]
-locate_outliers(appdata,'log_rating').head(5)
+# def locate_outliers(data,n):
+#     return data[abs(data[n] -np.mean(data[n])) > 2 * np.std(data[n])]
+# locate_outliers(appdata,'log_rating').head(5)
 # there is no data with difference from sample mean bigger than twice the standard deviation. The outliers in the boxplot are NOT satisfied as outliers with our ourlier definition.
-locate_outliers(appdata,'Price').head(5)
-locate_outliers(appdata,'Price').describe()
-# the min of outlier is 13.99.
+# locate_outliers(appdata,'Price').head(5)
+# locate_outliers(appdata,'Price').describe()
+# # the min of outlier is 13.99.
 
 
 
 
 # print(np.where(appdata['price']>50))
-new_appdata = appdata[appdata['Price'] <13.99]
+new_appdata = appdata[appdata['price'] <13.99]
 print(new_appdata.head(15))
 # Since the min of outlier is 13.99 and we want to exclude all the outliers that over 13.99 
 
 
 new_appdata.shape
 new_appdata.describe()
-new_appdata["Price"].describe()
+new_appdata["price"].describe()
 new_appdata.info()
 
 newprice = list(new_appdata.Price)
 plt.boxplot(newprice)
 plt.show()
 
-plt.hist(new_appdata['Price'])
+plt.hist(new_appdata['price'])
 
 
 # sns.boxplot(appdata['log_rating'])
@@ -295,11 +295,30 @@ plt.show()
 # avg ratings, free vs paid
 
 #%%
-from statsmodels.formula.api import ols
-modelratingpre = ols(formula='user_rating ~ rating_count_tot + prime_genre + cont_rating', data=dfas)
-modelratingpreFit = modelratingpre.fit()
-print( type(modelratingpreFit) )
-print( modelratingpreFit.summary() )
+# from statsmodels.formula.api import ols
+# modelratingpre = ols(formula='user_rating ~ rating_count_tot + prime_genre + cont_rating', data=dfas)
+# modelratingpreFit = modelratingpre.fit()
+# print( type(modelratingpreFit) )
+# print( modelratingpreFit.summary() )
+
+
+import statsmodels.formula.api as smf
+x=new_appdata[['size_bytes', 'price', 'rating_count_tot']]
+y=new_appdata[['user_rating']]
+model = smf.ols(formula= 'user_rating ~ size_bytes + price + rating_count_tot ', data=new_appdata)
+results_formula = model.fit()
+print(model.fit().summary())
+# the multi regression equation is : user_rating = 3.375 + 1.964e-10 size_bytes + 0.064 price + 1.812e-06 rating_count_tot. However this model doesn't fit the data very well because the value of r-squared is 0.02 which is very low. R-squared is the proportion of variance explained, so we want R-squared as close to one as possible.
+
+from sklearn.model_selection import train_test_split
+X_train,X_test,y_train,y_test = train_test_split(x,y,test_size=0.2,random_state=2)
+from sklearn.linear_model import LinearRegression
+lr = LinearRegression()
+lr.fit(X_train,y_train)
+y_pred = lr.predict(X_test)
+from sklearn.metrics import mean_absolute_error
+print("MAE",mean_absolute_error(y_test,y_pred))
+
 
 
 
