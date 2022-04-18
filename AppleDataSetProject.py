@@ -301,23 +301,49 @@ plt.show()
 # print( type(modelratingpreFit) )
 # print( modelratingpreFit.summary() )
 
+import statsmodels.formula.api as smf
+x=new_appdata[['size_bytes', 'price']]
+y=new_appdata[['user_rating']]
+model = smf.ols(formula= 'user_rating ~ size_bytes + price', data=new_appdata)
+results_formula = model.fit()
+print(model.fit().summary())
+
 
 import statsmodels.formula.api as smf
 x=new_appdata[['size_bytes', 'price', 'rating_count_tot']]
 y=new_appdata[['user_rating']]
-model = smf.ols(formula= 'user_rating ~ size_bytes + price + rating_count_tot ', data=new_appdata)
-results_formula = model.fit()
-print(model.fit().summary())
+model1 = smf.ols(formula= 'user_rating ~ size_bytes + price + rating_count_tot ', data=new_appdata)
+results_formula = model1.fit()
+print(model1.fit().summary())
 # the multi regression equation is : user_rating = 3.375 + 1.964e-10 size_bytes + 0.064 price + 1.812e-06 rating_count_tot. However this model doesn't fit the data very well because the value of r-squared is 0.02 which is very low. R-squared is the proportion of variance explained, so we want R-squared as close to one as possible.
 
-from sklearn.model_selection import train_test_split
-X_train,X_test,y_train,y_test = train_test_split(x,y,test_size=0.2,random_state=2)
-from sklearn.linear_model import LinearRegression
-lr = LinearRegression()
-lr.fit(X_train,y_train)
-y_pred = lr.predict(X_test)
-from sklearn.metrics import mean_absolute_error
-print("MAE",mean_absolute_error(y_test,y_pred))
+# from sklearn.model_selection import train_test_split
+# X_train,X_test,y_train,y_test = train_test_split(x,y,test_size=0.2,random_state=2)
+# from sklearn.linear_model import LinearRegression
+# lr = LinearRegression()
+# lr.fit(X_train,y_train)
+# y_pred = lr.predict(X_test)
+# from sklearn.metrics import mean_absolute_error
+# from sklearn.metrics import mean_squared_error
+# print("MAE",mean_absolute_error(y_test,y_pred))
+# print("MSE",mean_squared_error(y_test,y_pred))
+
+x=new_appdata[['size_bytes', 'price', 'rating_count_tot','cont_rating']]
+y=new_appdata[['user_rating']]
+model2 = smf.ols(formula= 'user_rating ~ size_bytes + price + rating_count_tot + C(cont_rating) ', data=new_appdata)
+results_formula = model2.fit()
+print(model2.fit().summary())
+#
+# for cont_rating is 17+, the multi regression equation is : user_rating = 3.418 - 0.752 + 1.85e-10 size_bytes + 0.055 price + 1.755e-06 rating_count_tot.
+# for cont_rating is 4+, the multi regression equation is : user_rating = 3.418 + 0.028 + 1.85e-10 size_bytes + 0.055 price + 1.755e-06 rating_count_tot.
+# for cont_rating is 9+, the multi regression equation is : user_rating = 3.418 + 0.153 + 1.85e-10 size_bytes + 0.055 price + 1.755e-06 rating_count_tot.
+#  R-squared of this model is 0.042 which is better than the first model. However R-squared is still low. We will try add one more variable to see how it will change.
+new_appdata.rename(columns={"sup_devices.num":"sup_devices_num", "lang.num":"lang_num" } ,inplace=True)
+x=new_appdata[['size_bytes', 'price', 'rating_count_tot','cont_rating', 'sup_devices_num', 'lang_num']]
+y=new_appdata[['user_rating']]
+model3 = smf.ols(formula= 'user_rating ~ size_bytes + price + rating_count_tot + C(cont_rating) + sup_devices_num + lang_num ', data=new_appdata)
+results_formula = model3.fit()
+print(model3.fit().summary())
 
 
 
