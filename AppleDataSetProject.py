@@ -64,8 +64,8 @@ appdata.info()
 appdata=appdata.drop(columns=['Unnamed: 0'], axis=1)
 
 appdata.shape
-print(appdata.isnull())
-print(appdata.dropna())
+appdata.isnull()
+appdata.dropna()
 appdata.shape
 
 
@@ -73,13 +73,26 @@ appdata.shape
 # # Managing our Outliers
 from scipy.stats import zscore
 
-price = list(appdata.price)
-plt.boxplot(price)
-plt.show()
 
-print(np.where(appdata['price']>50))
-new_appdata = appdata[appdata['price'] <5]
-print(new_appdata.head(15))
+# * Price Outliers
+price = list(appdata.price)
+plt.style.use('dark_background')
+sns.boxplot(price)
+plt.show()
+sns.distplot(appdata['price'], bins=20)
+plt.savefig('pricebeforeoutliers.png')
+
+# Mean and Standard Deviation
+mean = appdata.price.mean()
+std= appdata.price.std() 
+
+# identify outliers
+cutoff = 2.5*std
+lowerbound= mean-cutoff
+upperbound=mean+cutoff
+appdata.shape
+new_appdata = appdata[appdata['price'] >=lowerbound]
+new_appdata = appdata[appdata['price'] <=upperbound]
 
 new_appdata.shape
 new_appdata.describe()
@@ -89,8 +102,8 @@ new_appdata.info()
 newprice = list(new_appdata.price)
 plt.boxplot(newprice)
 plt.show()
-
-plt.hist(new_appdata['price'])
+sns.distplot(new_appdata['price'], bins=20)
+plt.savefig('priceafteroutliers.png')
 
 
 #%% [markdown]
@@ -114,7 +127,6 @@ print('Count of ratings for current version, Statistics=%.3f, p=%.3f' %(stat,p))
 stat, p = shapiro(new_appdata['user_rating'])
 print('User ratings, Statistics=%.3f, p=%.3f' %(stat,p))
 
-
 stat, p = shapiro(new_appdata['sup_devices.num'])
 print('Number of Supporting Devices, Statistics=%.3f, p=%.3f' %(stat,p))
 
@@ -133,40 +145,35 @@ print('Number of Screenshots showed for Display , Statistics=%.3f, p=%.3f' %(sta
 price_categories = new_appdata['price'].map(lambda price: 'free' if price <= 0 else 'paid')
 new_appdata['price_cat'] = price_categories
 
-#create new var based on price
+#create new var based on rating
 rating_categories = new_appdata['user_rating'].map(lambda ratings: 'high' if ratings >=4 else 'low')
 new_appdata['ratings_cat'] = rating_categories
 
-#create new var based on ratings
+#look into new variables
 new_appdata.groupby('price_cat').describe()
 new_appdata.groupby('ratings_cat').describe()
 
+#%% [markdown]
+# #Correlation Matrix
+# Since we have data that is not normally distributed, we use Spearman
+import seaborn as sns # For pairplots and heatmaps
+import matplotlib.pyplot as plt
 
-# Correlation Matrix
-#%% 
-new_appdata.corr()
-corrMatrix = new_appdata.corr()
+corrMatrix = new_appdata.corr(method="spearman")
 print (corrMatrix)
 
-
-corrMatrix = new_appdata.corr()
-sns.heatmap(corrMatrix, annot=True)
-plt.show()
-
+plt.figure(figsize=(10,6))
+heatmap = sns.heatmap(new_appdata.corr(), vmin=-1,vmax=1, annot=True)
+plt.title("Spearman Correlation")
+plt.savefig('corrplot.png') 
 
 #weak correlation between size and price
 price_sizecorr = np.corrcoef(new_appdata.size_bytes, new_appdata.price)
 price_sizecorr
 
-new_appdata.plot('price', 'size_bytes', kind='scatter', marker='o') # OR
-# plt.plot(df.age, df.rincome, 'o') # if you put marker='o' here, you will get line plot?
-plt.ylabel('App size')
-plt.xlabel('Price')
-plt.show()
+#%% [markdown]
+# #Graph 1
 
-
-#Graph 1
-#%%
 maxvals = new_appdata.max()
 print(maxvals)
 
@@ -180,20 +187,23 @@ plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
 plt.show()
 
 
-# Graph 2
+#%% [markdown]
+# #Graph 2
 
-#%%
 ratingscol = 'ratings_cat'
 new_appdata.groupby(['price_cat', ratingscol]).size().unstack(level=1).plot(kind='bar')
 current_values = plt.gca().get_yticks()
 plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
-plt.title('Number of Apps by Price Category and Ratings Category')
+plt.title('Number of Apps, by Price Category and Ratings Category')
 plt.ylabel('Number of Apps')
-plt.show()
+plt.xlabel('Price Category')
+plt.savefig('g2.png') 
 
-# Graph 3
 
-#%%
+
+#%% [markdown]
+# #Graph 3
+
 
 plt.style.use('dark_background')
 fig = plt.figure(figsize=(10, 5))
@@ -212,136 +222,80 @@ plt.xlim(0, 10)
 plt.legend(loc="upper left")
 current_values = plt.gca().get_xticks()
 plt.gca().set_xticklabels(['{:,.0f}'.format(x) for x in current_values])
-plt.show()
+plt.savefig('g3.png') 
 
-# Graph 4
 
-#%%
-# remianing Graphs
-# Total apps per group(var)
-# average ratings per group(var)
+#%% [markdown]
+# #Graph 4
+new_appdata.info()
+
+pricecategory = new_appdata['prime_genre'].value_counts()
+pricecategory.plot(kind='bar')
+plt.title("Number of Apps, by Genre")
+plt.xlabel("")
+plt.ylabel("Number of Apps")
+current_values = plt.gca().get_yticks()
+plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
+plt.tight_layout()
+plt.savefig('g4.png') 
+
+#%% [markdown]
+# #Graph 5
+
+from matplotlib.ticker import StrMethodFormatter
+
+new_appdata.info()
+
+
+new_appdata_graph = new_appdata.groupby('prime_genre').mean()
+plt.bar(new_appdata_graph.index, new_appdata_graph['user_rating'])
+plt.xlabel('Genre')
+plt.ylabel('Average Ratings')
+plt.title('Average Ratings, by Genre')
+current_values = plt.gca().get_yticks()
+plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
+plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.2f}')) 
+plt.xticks(rotation = 90)
+plt.tight_layout()
+plt.savefig('g5.png') 
+
+
+
+
+
+#%% [markdown]
+# #Graph 6
 # App Price by genre category (what genre cost the most?)
+
+new_appdata_graph = new_appdata.groupby('prime_genre').mean()
+plt.bar(new_appdata_graph.index, new_appdata_graph['price'])
+plt.xlabel('Genre')
+plt.ylabel('Average Price')
+plt.title('Average Price, by Genre')
+current_values = plt.gca().get_yticks()
+plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
+plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.2f}')) 
+plt.xticks(rotation = 90)
+plt.tight_layout()
+plt.savefig('g6.png') 
+
+
+#%% [markdown]
+# #Graph 7
 # avg ratings, free vs paid
+new_appdata_graphf = new_appdata.groupby('price_cat').mean()
+plt.bar(new_appdata_graphf.index, new_appdata_graphf['user_rating'], color='grey', edgecolor='darkblue')
+plt.xlabel('Price Category')
+plt.ylabel('Average Ratings')
+plt.title('Average Ratings, Free vs. Paid')
+current_values = plt.gca().get_yticks()
+plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
+plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.2f}')) 
+plt.savefig('g7.png') 
 
 #%%
+new_appdata.info()
 
-
-
-
-
-
-
-
-
-'''
-#********************************SOMEONE'S OLD CODE*******************************
-
-#%% [markdown]
-
-# Top Price in important Category (Business , Navigation , Education , Productivity )
-#  in another side price for all of apps less than 50 USD
-# Education Apps has a higher price 
-# Shopping Apps has a lower price
-#%%
-#
-plt.figure(figsize=(10,5))
-plt.scatter(y=paid_apps.prime_genre ,x=paid_apps.price,c='DarkBlue')
-plt.title('Price & Category')
-plt.xlabel('Price')
-plt.ylabel('Category')
-plt.show()
-
-
-#%% [markdown]
-
-#from this graph The number of apps that have a price greater than 50 is few compared to before 50 USD
-# %%
-
-
-Top_Apps=paid_apps[paid_apps.price>50][['track_name','price','prime_genre','user_rating']]
-Top_Apps
-#7 Top apps with price, prime_genre and user rating
-
-
-# %% [markdown]
-
-# Top 7 apps on the basis of price
-
-
-def visualizer(x, y, plot_type, title, xlabel, ylabel, rotation=False, rotation_value=60, figsize=(15,8)):
-    plt.figure(figsize=figsize)
-    
-    if plot_type == "bar":  
-        sns.barplot(x=x, y=y)
-    elif plot_type == "count":  
-        sns.countplot(x)
-   
-    plt.title(title, fontsize=20)
-    plt.xlabel(xlabel, fontsize=18)
-    plt.ylabel(ylabel, fontsize=18)
-    plt.yticks(fontsize=13)
-    if rotation == True:
-        plt.xticks(fontsize=13,rotation=rotation_value)
-    plt.show()
-
-# %%
-
-Top_Apps = Top_Apps.sort_values('price', ascending=False)
-
-visualizer(Top_Apps.price,Top_Apps.track_name, "bar", "TOP 7 APPS ON THE BASIS OF PRICE","Price (in USD)","APP NAME")
-#names of track in y axis to be readable    
-
-
-# %%
-
-paid_apps.head(2)
-
-# %%
-
-#sum of all paid apps 
-sum_paid = paid_apps.price.value_counts().sum()
-sum_paid
-
-# %%
-
-#sum of all free apps
-sum_free = free_apps.price.value_counts().sum()
-sum_free
-
-
-#%% [markdown]
-
-# How does the price distribution get affected by category ?
-
-data.prime_genre.value_counts()
-
-#%% [markdown]
-
-# Top app category is Games Games  is 3862 and Entertainment  is 535
-
-data.head()
-
-#%%
-
-new_data_cate = data.groupby([data.prime_genre])[['id']].count().reset_index().sort_values('id' ,ascending = False)
-new_data_cate.columns = ['prime_genre','# of Apps']
-new_data_cate.head()
-#Categories and number of apps in each category
-
-
-#%%
-
-#Top_Categories accorrding number of apps
-new_data_cate.head(10)
-
-
-sns.barplot(y = 'prime_genre',x = '# of Apps', data=new_data_cate.head(10))
-
-
-#Lower Categories according number of apps Categories unpopular
-new_data_cate.tail(10)
-
-#%%
-
-sns.barplot(x= '# of Apps' , y = 'prime_genre' , data = new_data_cate.tail(10))
-'''
+#var for models
+new_appdata['price_cat'].replace(['free','paid'],[0,1],inplace=True)
+new_appdata['ratings_cat'].replace(['low','high'],[0,1],inplace=True)
