@@ -483,6 +483,7 @@ X = new_appdata.drop('price_cat_en', axis=1)
 X = X.drop('id', axis=1)
 X = X.drop('track_name', axis=1)
 X = X.drop('currency', axis=1)
+X = X.drop('price', axis=1)
 X = X.drop('price_cat', axis=1)
 X = X.drop('ratings_cat', axis=1)
 X = X.drop('prime_genre', axis=1)
@@ -504,10 +505,14 @@ X.fillna(-99999, inplace=True)
 
 #%% [markdown]
 
+# 
+
+#%% [markdown]
+
 # Logistic regression 
 
 model = LogisticRegression()
-rfe = RFE(model, 3)
+rfe = RFE(model, 5)
 fit = rfe.fit(X, Y)
 print("Num Features for logisitic regression classifier: %s" % (fit.n_features_))
 print(X.columns)
@@ -529,7 +534,7 @@ from sklearn.feature_selection import RFE
 # x=cancer_ds.as_matrix()
 # colnames=cancer_ds.columns
 from sklearn.tree import DecisionTreeClassifier
-rfe = RFE(estimator=DecisionTreeClassifier(), n_features_to_select=3)
+rfe = RFE(estimator=DecisionTreeClassifier(), n_features_to_select=5)
 # fit the model
 fit = rfe.fit(X, Y)
 
@@ -554,9 +559,37 @@ from sklearn.svm import LinearSVC
 svm = LinearSVC()
 # create the RFE model for the svm classifier 
 # and select attributes
-rfe = RFE(svm, 3)
+rfe = RFE(svm, 5)
 rfe = rfe.fit(X,Y)
 # print summaries for the selection of attributes
 print(rfe.support_)
 print(X.columns)
 print(rfe.ranking_)
+
+
+
+
+#%% [markdown]
+
+# When using 5 features
+
+# | Features         	| Logistic regression 	|   	| DecisionTree 	|   	| Linear SVC 	|
+# |------------------	|---------------------	|---	|--------------	|---	|------------	|
+# | size_bytes       	|                     	|   	| T            	|   	| T          	|
+# | rating_count_ver 	|                     	|   	| T            	|   	| T          	|
+# | user_rating      	| T                   	|   	| T            	|   	|            	|
+# | user_rating_ver  	| T                   	|   	|              	|   	|            	|
+# | sup_devices.num  	|                     	|   	|              	|   	|            	|
+# | ipadSc_urls.num  	|                     	|   	|              	|   	|            	|
+# | lang.num         	|                     	|   	| T            	|   	| T          	|
+# | vpp_lic          	| T                   	|   	|              	|   	|            	|
+# | log_rating       	|                     	|   	|              	|   	| T          	|
+# | genre_en         	|                     	|   	| T            	|   	| T          	|
+# | cont_rating_en   	| T                   	|   	|              	|   	|            	|
+# | ratings_cat_en   	| T                   	|   	|              	|   	|            	|
+# |                  	|                     	|   	|              	|   	|            	|
+# |                  	|                     	|   	|              	|   	|            	|
+# |                  	|                     	|   	|              	|   	|            	|
+
+
+# %%
