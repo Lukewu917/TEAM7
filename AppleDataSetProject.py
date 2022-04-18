@@ -349,32 +349,32 @@ new_appdata.columns
 
 # # Mean user rating of an app is :
 
-print(new_appdata['user_rating'].mean())
+# print(new_appdata['user_rating'].mean())
 
 
-print(new_appdata['user_rating'].describe())
+# print(new_appdata['user_rating'].describe())
 
-i = 0
+# i = 0
 
-new_appdata['Good_Bad'] = 1
+# new_appdata['Good_Bad'] = 1
 
-for element in new_appdata['user_rating']:
+# for element in new_appdata['user_rating']:
 
-    if (element >= 4.5):
+#     if (element >= 4.5):
 
-        new_appdata['Good_Bad'][i] = 1
+#         new_appdata['Good_Bad'][i] = 1
 
-        i = i+1
+#         i = i+1
 
-    else :
+#     else :
 
-        new_appdata['Good_Bad'][i] = 0
+#         new_appdata['Good_Bad'][i] = 0
 
-        i = i+1
+#         i = i+1
 
 
 
-print(new_appdata['Good_Bad'])
+# print(new_appdata['Good_Bad'])
 
 #%% [markdown]
 
@@ -387,7 +387,7 @@ print(new_appdata['track_name'].describe())
 
 #to catagorical
 
-new_appdata['Good_Bad'] = pd.Categorical(new_appdata.Good_Bad)
+# new_appdata['Good_Bad'] = pd.Categorical(new_appdata.Good_Bad)
 
 new_appdata['prime_genre'] = pd.Categorical(new_appdata.prime_genre)
 
@@ -487,7 +487,7 @@ from sklearn.linear_model import LogisticRegression
 
 new_appdata['log_rating'].round(decimals = 2)
 
-X = new_appdata.drop('Good_Bad', axis=1)
+X = new_appdata.drop('price_cat_en', axis=1)
 X = X.drop('id', axis=1)
 X = X.drop('track_name', axis=1)
 X = X.drop('currency', axis=1)
@@ -498,9 +498,12 @@ X = X.drop('cont_rating', axis=1)
 X = X.drop('rating_count_tot', axis=1)
 X = X.drop('ver', axis=1)
 X.replace([np.inf, -np.inf], np.nan, inplace=True)
+
+Y = new_appdata['price_cat_en']
+
 Y.replace([np.inf, -np.inf], np.nan, inplace=True)
 
-Y = new_appdata['Good_Bad']
+#%% [markdown]
 
 X['log_rating'].round(decimals = 2)
 
@@ -516,4 +519,33 @@ print("Feature Ranking: %s" % (fit.ranking_))
 
 
 
+
 # %%
+from sklearn.feature_selection import RFE
+from sklearn.ensemble import RandomForestClassifier
+
+
+# y=cancer_ds.Biopsy.values
+# cancer_ds=cancer_ds.drop(['Biopsy'],axis=1)
+
+
+# x=cancer_ds.as_matrix()
+# colnames=cancer_ds.columns
+
+
+model= RandomForestClassifier()
+model.fit(X,Y)
+
+
+rfe=RFE(model,n_features_to_select=3,verbose=2)
+
+
+fit=rfe.fit(X,Y)
+# %%
+
+print("Num Features: %s" % (fit.n_features_))
+print("Selected Features: %s" % (fit.support_))
+print("Feature Ranking: %s" % (fit.ranking_))
+# %%
+
+
