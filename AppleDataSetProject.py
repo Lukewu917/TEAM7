@@ -336,6 +336,9 @@ new_appdata.columns
 
 #%% [markdown]
 
+# source :  https://www.business2community.com/mobile-apps/app-ratings-and-reviews-2021-benchmarks-02396808
+
+
 # # Mean user rating of an app is :
 
 print(new_appdata['user_rating'].mean())
@@ -344,6 +347,8 @@ print(new_appdata['user_rating'].mean())
 print(new_appdata['user_rating'].describe())
 
 i = 0
+
+new_appdata['Good_Bad'] = 1
 
 for element in new_appdata['user_rating']:
 
@@ -361,8 +366,146 @@ for element in new_appdata['user_rating']:
 
 
 
+print(new_appdata['Good_Bad'])
 
-# source :  https://www.business2community.com/mobile-apps/app-ratings-and-reviews-2021-benchmarks-02396808
+#%% [markdown]
+
+print(new_appdata['track_name'].describe()) 
+
+# Unique elements are 7109 out of 7111 count, so dropping.
+
+
+#%% [markdown]
+
+#to catagorical
+
+new_appdata['Good_Bad'] = pd.Categorical(new_appdata.Good_Bad)
+
+new_appdata['prime_genre'] = pd.Categorical(new_appdata.prime_genre)
+
+new_appdata['price_cat'] = pd.Categorical(new_appdata.price_cat)
+
+
+new_appdata['ratings_cat'] = pd.Categorical(new_appdata.ratings_cat)
+
+
+#%% [markdown]
+
+
+
+
+#%% [markdown]
+
+
+# label encoding for categorcial varibales 
+
+# from sklearn.preprocessing import OrdinalEncoder
+# OrdinalEncoder = OrdinalEncoder()
+
+# # Assigning numerical values and storing in another column
+# new_appdata['price_cat_en'] = OrdinalEncoder.fit_transform(new_appdata['price_cat'])
+# # print(new_appdata['price_cat_en'])
+
+
+# new_appdata['ratings_cat_en'] = labelencoder.fit_transform(new_appdata['ratings_cat'])
+# print(new_appdata['ratings_cat_en'])
+
+
+# new_appdata['prime_genre_en'] = labelencoder.fit_transform(new_appdata['prime_genre'])
+# print(new_appdata['prime_genre_en'])
+
+# new_appdata['cont_rating_en'] = labelencoder.fit_transform(new_appdata['cont_rating'])
+# print(new_appdata['cont_rating_en'])
+
+# new_appdata['Good_Bad'] = 0
+
+# i = 0
+
+# for e in new_appdata['cont_rating']:
+
+#     if (e == 4+):
+
+#         new_appdata['Good_Bad'] = 0
+
+#         i = i+1
+
+#     if (e == 12+):
+
+#         new_appdata['Good_Bad'] = 0
+
+#         i = i+1
+
+#      if (e == 9+):
+
+#         new_appdata['Good_Bad'] = 0
+
+#         i = i+1
+
+#      if (e == 17+):
+
+#         new_appdata['Good_Bad'] = 0
+
+#         i = i+1
+
+
+#     else :
+
+#         return              
+
+
+
+from sklearn.preprocessing import OrdinalEncoder
+
+ord_enc = OrdinalEncoder()
+new_appdata["genre_en"] = ord_enc.fit_transform(new_appdata[["prime_genre"]])
+new_appdata[["prime_genre", "genre_en"]].head(11)
+
+new_appdata["cont_rating_en"] = ord_enc.fit_transform(new_appdata[["cont_rating"]])
+new_appdata[["cont_rating", "cont_rating_en"]].head(11)
+
+
+#%% 
+
+new_appdata["price_cat_en"] = ord_enc.fit_transform(new_appdata[["price_cat"]])
+new_appdata[["price_cat", "price_cat_en"]].head(11)
+
+new_appdata["ratings_cat_en"] = ord_enc.fit_transform(new_appdata[["ratings_cat"]])
+new_appdata[["ratings_cat", "ratings_cat_en"]].head(11)
+
+#%% [markdown]
+
+from sklearn.feature_selection import RFE
+from sklearn.linear_model import LogisticRegression
+
+new_appdata['log_rating'].round(decimals = 2)
+
+X = new_appdata.drop('Good_Bad', axis=1)
+X = X.drop('id', axis=1)
+X = X.drop('track_name', axis=1)
+X = X.drop('currency', axis=1)
+X = X.drop('price_cat', axis=1)
+X = X.drop('ratings_cat', axis=1)
+X = X.drop('prime_genre', axis=1)
+X = X.drop('cont_rating', axis=1)
+X = X.drop('rating_count_tot', axis=1)
+X = X.drop('ver', axis=1)
+X.replace([np.inf, -np.inf], np.nan, inplace=True)
+Y.replace([np.inf, -np.inf], np.nan, inplace=True)
+
+Y = new_appdata['Good_Bad']
+
+X['log_rating'].round(decimals = 2)
+
+X['size_bytes'] = X['size_bytes'].div(1000000).round(2)
+X.fillna(-99999, inplace=True)
+
+model = LogisticRegression()
+rfe = RFE(model, 3)
+fit = rfe.fit(X, Y)
+print("Num Features: %s" % (fit.n_features_))
+print("Selected Features: %s" % (fit.support_))
+print("Feature Ranking: %s" % (fit.ranking_))
+
 
 
 # %%
