@@ -216,7 +216,7 @@ ax = sns.kdeplot(lowratings['price'], color='Red', label='Apps with Low Ratings'
 
 plt.yticks([])
 plt.title('Price Distribution by User Ratings')
-plt.ylabel('')
+plt.ylabel('Density')
 plt.xlabel('Price')
 plt.xlim(0, 10)
 plt.legend(loc="upper left")
