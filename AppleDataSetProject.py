@@ -6,6 +6,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 import seaborn as sns
 from warnings import filterwarnings
+
+from sqlalchemy import false
 filterwarnings("ignore")
 #!pip3 install ppscore
 import ppscore as pps
@@ -24,7 +26,7 @@ from  scipy.stats import spearmanr
 #load_data
 import os
 os.getcwd()
-os.chdir('/Users/b/Desktop/DataScience/TEAM7')
+os.chdir(r'C:\Users\wpy12\OneDrive\Documents\clone\TEAM7')
 appdata = pd.read_csv('AppleStore.csv' ,sep =',' , encoding = 'utf8' )
 appdata.head()
 
@@ -52,10 +54,10 @@ appdata.head()
 # * "lang.num": Number of supported languages
 # * "vpp_lic": Vpp Device Based Licensing Enabled
 
-#%% [markdown]
-# # Exploratory Data Analysis
-# Look at data and basic descriptive stats
 
+#%%
+# Data Wrangling
+# Look at data and basic descriptive stats
 appdata.shape
 appdata.describe()
 appdata["price"].describe()
@@ -68,8 +70,15 @@ appdata.isnull()
 appdata.dropna()
 appdata.shape
 
+appdata['cont_rating'] = [x.strip('+') for x in appdata['cont_rating']]
+appdata.cont_rating = pd.to_numeric( appdata.cont_rating)
+print(appdata.cont_rating.dtypes)
+appdata.rename(columns = {'sup_devices.num':'sup_devices_num', 'lang.num':'lang_num', 'ipadSc_urls.num': 'ipadSc_urls_num'}, inplace = True)
+
+
 
 #%% [markdown]
+# # Exploratory Data Analysis
 # # Managing our Outliers
 from scipy.stats import zscore
 
@@ -127,13 +136,13 @@ print('Count of ratings for current version, Statistics=%.3f, p=%.3f' %(stat,p))
 stat, p = shapiro(new_appdata['user_rating'])
 print('User ratings, Statistics=%.3f, p=%.3f' %(stat,p))
 
-stat, p = shapiro(new_appdata['sup_devices.num'])
+stat, p = shapiro(new_appdata['sup_devices_num'])
 print('Number of Supporting Devices, Statistics=%.3f, p=%.3f' %(stat,p))
 
-stat, p = shapiro(new_appdata['lang.num'])
+stat, p = shapiro(new_appdata['lang_num'])
 print('Number of Supported languages , Statistics=%.3f, p=%.3f' %(stat,p))
 
-stat, p = shapiro(new_appdata['ipadSc_urls.num'])
+stat, p = shapiro(new_appdata['ipadSc_urls_num'])
 print('Number of Screenshots showed for Display , Statistics=%.3f, p=%.3f' %(stat,p))
 
 
@@ -146,30 +155,12 @@ price_categories = new_appdata['price'].map(lambda price: 'free' if price <= 0 e
 new_appdata['price_cat'] = price_categories
 
 #create new var based on rating
-rating_categories = new_appdata['user_rating'].map(lambda ratings: 'high' if ratings >=4 else 'low')
+rating_categories = new_appdata['user_rating'].map(lambda ratings: 'high' if ratings >=4.5 else 'low')
 new_appdata['ratings_cat'] = rating_categories
 
 #look into new variables
 new_appdata.groupby('price_cat').describe()
 new_appdata.groupby('ratings_cat').describe()
-
-#%% [markdown]
-# #Correlation Matrix
-# Since we have data that is not normally distributed, we use Spearman
-import seaborn as sns # For pairplots and heatmaps
-import matplotlib.pyplot as plt
-
-corrMatrix = new_appdata.corr(method="spearman")
-print (corrMatrix)
-
-plt.figure(figsize=(10,6))
-heatmap = sns.heatmap(new_appdata.corr(), vmin=-1,vmax=1, annot=True)
-plt.title("Spearman Correlation")
-plt.savefig('corrplot.png') 
-
-#weak correlation between size and price
-price_sizecorr = np.corrcoef(new_appdata.size_bytes, new_appdata.price)
-price_sizecorr
 
 #%% [markdown]
 # #Graph 1
@@ -217,8 +208,10 @@ ax = sns.kdeplot(lowratings['price'], color='Red', label='Apps with Low Ratings'
 plt.yticks([])
 plt.title('Price Distribution by User Ratings')
 plt.ylabel('')
+# what is the y-value?
 plt.xlabel('Price')
-plt.xlim(0, 10)
+plt.xlim(0, 16)
+#Luke changed 10 to 16 because the highest price in ourdata set is 15.99
 plt.legend(loc="upper left")
 current_values = plt.gca().get_xticks()
 plt.gca().set_xticklabels(['{:,.0f}'.format(x) for x in current_values])
@@ -279,6 +272,11 @@ plt.xticks(rotation = 90)
 plt.tight_layout()
 plt.savefig('g6.png') 
 
+# price cat by genre category
+sns.barplot(x='prime_genre',y='user_rating',hue='price_cat',data=new_appdata)
+plt.xticks(rotation = 90)
+
+
 
 #%% [markdown]
 # #Graph 7
@@ -293,6 +291,82 @@ plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
 plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.2f}')) 
 plt.savefig('g7.png') 
 
+
+#%%
+# Gragh 8 (rating count on current version vs user rating)
+sns.relplot(x="rating_count_ver", y="user_rating", data=new_appdata)
+new_appdata.loc[new_appdata["rating_count_ver"]>150000]
+new_appdata.loc[new_appdata["rating_count_ver"]>50000]
+# we can see if the rating count on current verion is over 50000, the app's user rating won't below 4 except one outlier in this gragh. One interesting thing we found in graph 9 is those outlier with user rating above 4 and rating_count_ver over 50000. We want to see what kind of features does those app have to make itself outstanding. The app's name is Infinity Blade. size_byts is pretty big, 634107810; price is much lower than apps average price, only 0.99, cont_rating is 12+ and it is a game app that supports 43 devices and 13 langues. 
+
+#%%
+# Graph 9  (size bytes vs user rating)
+plt.scatter(x="size_bytes", y="user_rating", data=new_appdata)
+plt.xlabel('size')
+plt.ylabel('user rating')
+plt.show()
+# It seems that there is no apparent correlation between app size and user rating.
+
+#%%
+# #Graph 10 (user rating on current verison vs user rating)
+sns.relplot(x="user_rating_ver", y="user_rating", data=new_appdata)
+plt.scatter(x="user_rating_ver", y="user_rating", data=new_appdata)
+plt.xlabel('user rating ver')
+plt.ylabel('user rating')
+plt.show()
+# It seems that there is no apparent correlation between user_rating_ver and user rating.
+
+
+#%%
+# chi-square test 
+# pip install scipy
+from scipy.stats import chi2_contingency
+import scipy.stats as stats
+
+pd.crosstab(new_appdata['cont_rating'],new_appdata['user_rating'])
+data = [new_appdata['cont_rating'], new_appdata['user_rating']]
+stat, p, dof, expected = chi2_contingency(data)
+stat, p, dof, expected 
+# p value is less than 0.05. Therefore, we reject H0, that is, the variables have a significant relation.
+
+
+data = [new_appdata['size_bytes'], new_appdata['user_rating']]
+stat, p, dof, expected = chi2_contingency(data)
+stat, p, dof, expected 
+# p value is less than 0.05. Therefore, we reject H0, that is, the variables have a significant relation.
+
+
+# data = [new_appdata['user_rating_ver'], new_appdata['user_rating']]
+# stat, p, dof, expected = chi2_contingency(data)
+# stat, p, dof, expected 
+
+# data = [new_appdata['rating_count_ver'],new_appdata['user_rating']]
+# stats.chi2_contingency(data)
+
+# data = [new_appdata['price'], new_appdata['user_rating']]
+# stat, p, dof, expected = chi2_contingency(data)
+# stat, p, dof, expected 
+
+
+#%% [markdown]
+# #Graph 8
+# #Correlation Matrix
+# Since we have data that is not normally distributed, we use Spearman
+import seaborn as sns # For pairplots and heatmaps
+import matplotlib.pyplot as plt
+
+corrMatrix = new_appdata.corr(method="spearman")
+print (corrMatrix)
+
+plt.figure(figsize=(10,6))
+heatmap = sns.heatmap(new_appdata.corr(), vmin=-1,vmax=1, annot=True)
+plt.title("Spearman Correlation")
+plt.savefig('corrplot.png') 
+
+#weak correlation between size and price
+price_sizecorr = np.corrcoef(new_appdata.size_bytes, new_appdata.price)
+price_sizecorr
+
 #%%
 new_appdata.info()
 
@@ -301,58 +375,123 @@ new_appdata['price_cat'].replace(['free','paid'],[0,1],inplace=True)
 new_appdata['ratings_cat'].replace(['low','high'],[0,1],inplace=True)
 
 
-
 #%%
-# from statsmodels.formula.api import ols
-# modelratingpre = ols(formula='user_rating ~ rating_count_tot + prime_genre + cont_rating', data=dfas)
-# modelratingpreFit = modelratingpre.fit()
-# print( type(modelratingpreFit) )
-# print( modelratingpreFit.summary() )
-
-import statsmodels.formula.api as smf
-x=new_appdata[['size_bytes', 'price']]
-y=new_appdata[['user_rating']]
-model = smf.ols(formula= 'user_rating ~ size_bytes + price', data=new_appdata)
-results_formula = model.fit()
-print(model.fit().summary())
-
-
+# Preditcting rating using size_bytes, price and rating_count_tot via multilinear regression 
 import statsmodels.formula.api as smf
 x=new_appdata[['size_bytes', 'price', 'rating_count_tot']]
 y=new_appdata[['user_rating']]
 model1 = smf.ols(formula= 'user_rating ~ size_bytes + price + rating_count_tot ', data=new_appdata)
 results_formula = model1.fit()
 print(model1.fit().summary())
-# the multi regression equation is : user_rating = 3.375 + 1.964e-10 size_bytes + 0.064 price + 1.812e-06 rating_count_tot. However this model doesn't fit the data very well because the value of r-squared is 0.02 which is very low. R-squared is the proportion of variance explained, so we want R-squared as close to one as possible.
+# the multi regression equation is : user_rating = 3.392 + 1.573e-10 size_bytes + 0.054 price + 1.8e-06 rating_count_tot. However this model doesn't fit the data very well because the value of r-squared is 0.017 which is very low. R-squared is the proportion of variance explained, so we want R-squared as close to one as possible. 
 
-# from sklearn.model_selection import train_test_split
-# X_train,X_test,y_train,y_test = train_test_split(x,y,test_size=0.2,random_state=2)
-# from sklearn.linear_model import LinearRegression
-# lr = LinearRegression()
-# lr.fit(X_train,y_train)
-# y_pred = lr.predict(X_test)
-# from sklearn.metrics import mean_absolute_error
-# from sklearn.metrics import mean_squared_error
-# print("MAE",mean_absolute_error(y_test,y_pred))
-# print("MSE",mean_squared_error(y_test,y_pred))
-
+#%%
+# Adding one more predictor to the model 
 x=new_appdata[['size_bytes', 'price', 'rating_count_tot','cont_rating']]
 y=new_appdata[['user_rating']]
 model2 = smf.ols(formula= 'user_rating ~ size_bytes + price + rating_count_tot + C(cont_rating) ', data=new_appdata)
 results_formula = model2.fit()
 print(model2.fit().summary())
-#
-# for cont_rating is 17+, the multi regression equation is : user_rating = 3.418 - 0.752 + 1.85e-10 size_bytes + 0.055 price + 1.755e-06 rating_count_tot.
-# for cont_rating is 4+, the multi regression equation is : user_rating = 3.418 + 0.028 + 1.85e-10 size_bytes + 0.055 price + 1.755e-06 rating_count_tot.
-# for cont_rating is 9+, the multi regression equation is : user_rating = 3.418 + 0.153 + 1.85e-10 size_bytes + 0.055 price + 1.755e-06 rating_count_tot.
+# for cont_rating is 17+, the multi regression equation is : user_rating = 3.462 - 0.79 + 1.474e-10 size_bytes + 0.0462price + 1.745e-06 rating_count_tot.
+# for cont_rating is 12+, the multi regression equation is : user_rating = 3.462 - 0.038 + 1.474e-10 size_bytes + 0.0462price + 1.745e-06 rating_count_tot.
+# for cont_rating is 9+, the multi regression equation is : user_rating = 3.462 - 0.14 + 1.474e-10 size_bytes + 0.0462price + 1.745e-06 rating_count_tot.
 #  R-squared of this model is 0.042 which is better than the first model. However R-squared is still low. We will try add one more variable to see how it will change.
-new_appdata.rename(columns={"sup_devices.num":"sup_devices_num", "lang.num":"lang_num" } ,inplace=True)
-x=new_appdata[['size_bytes', 'price', 'rating_count_tot','cont_rating', 'sup_devices_num', 'lang_num']]
+
+#%%
+# changing other variables as predictors
+from sklearn.model_selection import train_test_split
+x=new_appdata[['size_bytes', 'user_rating_ver','cont_rating', 'sup_devices_num', 'lang_num','ipadSc_urls_num']]
 y=new_appdata[['user_rating']]
-model3 = smf.ols(formula= 'user_rating ~ size_bytes + price + rating_count_tot + C(cont_rating) + sup_devices_num + lang_num ', data=new_appdata)
+
+
+model3 = smf.ols(formula= 'user_rating ~ user_rating_ver + size_bytes + ipadSc_urls_num + sup_devices_num + lang_num ', data=new_appdata)
 results_formula = model3.fit()
 print(model3.fit().summary())
+# Predicitng model has been improved because R-squred of this model is much higher than previous model's. We got R squared of 0.607 for pur model. We conclude that using  size_bytes, price, rating_count_tot, cont_rating, sup_devices_num, and lang_num as predictors is the best model I can approach.
 
+
+
+
+from sklearn.model_selection import train_test_split
+from sklearn import linear_model
+X_train1, X_test1, y_train1, y_test1 = train_test_split(x, y, test_size = 0.250, random_state=333)
+full_split1 = linear_model.LinearRegression() 
+full_split1.fit(X_train1, y_train1)
+y_pred1 = full_split1.predict(X_test1)
+full_split1.score(X_test1, y_test1)
+
+print('score (train):', full_split1.score(X_train1, y_train1)) # 0.6023509986393917
+print('score (test):', full_split1.score(X_test1, y_test1)) # 0.6204260945573832
+print('intercept:', full_split1.intercept_) # 1.63872717
+print('coef_:', full_split1.coef_)  # [-5.67008024e-11  6.32893695e-01  1.57839702e-03 -9.68894846e-03 7.04789432e-03  4.11500645e-02]
+
+test_sizes = [0.2, 0.1, 0.05]
+
+
+
+X_train2, X_test2, y_train2, y_test2 = train_test_split(x, y, test_size = 0.2, random_state=333)
+full_split2 = linear_model.LinearRegression()
+full_split2.fit(X_train2, y_train2)
+y_pred2 = full_split2.predict(X_test2)
+full_split2.score(X_test2, y_test2)
+
+print('score (train):', full_split2.score(X_train2, y_train2)) # 0.6023509986393917
+print('score (test):', full_split2.score(X_test2, y_test2)) # 0.0.6204260945573832
+print('intercept:', full_split2.intercept_) # 1.63872717
+print('coef_:', full_split2.coef_)  # [-5.67008024e-11  6.32893695e-01  1.57839702e-03 -9.68894846e-03 7.04789432e-03  4.11500645e-02]
+
+
+
+X_train3, X_test3, y_train3, y_test3 = train_test_split(x, y, test_size = 0.1, random_state=333)
+full_split3 = linear_model.LinearRegression() 
+full_split3.fit(X_train3, y_train3)
+y_pred3 = full_split3.predict(X_test3)
+full_split2.score(X_test3, y_test3)
+
+print('score (train):', full_split3.score(X_train3, y_train3)) # 0.6060129342797743
+print('score (test):', full_split3.score(X_test3, y_test3)) # 0.6145086921403948
+print('intercept:', full_split3.intercept_) # 1.56020116
+print('coef_:', full_split3.coef_)  # [-5.38258262e-11  6.35560705e-01  3.73249018e-03 -8.39264471e-03 6.72794028e-03  4.24404807e-02]
+
+
+X_train4, X_test4, y_train4, y_test4 = train_test_split(x, y, test_size = 0.05, random_state=333)
+full_split4 = linear_model.LinearRegression() # new instancew
+full_split4.fit(X_train4, y_train4)
+y_pred4 = full_split4.predict(X_test4)
+full_split2.score(X_test4, y_test4)
+
+print('score (train):', full_split4.score(X_train4, y_train4)) # 0.6076565014159364
+print('score (test):', full_split4.score(X_test4, y_test4)) # 0.5927036744032501
+print('intercept:', full_split4.intercept_) # 1.56653661
+print('coef_:', full_split4.coef_)  # [-5.69613690e-11  6.36089613e-01  3.18376976e-03 -8.54181868e-03 6.70983520e-03  4.29414016e-02]
+
+
+#%%
+# x = new_appdata['user_rating']
+# new_appdata['user_rating'] = (x-x.min())/ (x.max() - x.min())
+
+# model4 = smf.ols(formula= 'user_rating ~ user_rating_ver + size_bytes + ipadSc_urls_num + sup_devices_num + lang_num ', data=new_appdata)
+# results_formula = model4.fit()
+# print(model4.fit().summary())
+
+
+
+# #%%
+# x1 = new_appdata['user_rating_ver']
+# new_appdata['user_rating_ver'] = (x1-x1.min())/ (x1.max() - x1.min())
+# x2 = new_appdata['size_bytes']
+# new_appdata['size_bytes'] = (x-x.min())/ (x.max() - x.min())
+# x3 = new_appdata['ipadSc_urls_num']
+# new_appdata['ipadSc_urls_num'] = (x-x.min())/ (x.max() - x.min())
+# x4 = new_appdata['sup_devices_num']
+# new_appdata['sup_devices_num'] = (x-x.min())/ (x.max() - x.min())
+# x5 = new_appdata['lang_num']
+# new_appdata['lang_num'] = (x-x.min())/ (x.max() - x.min())
+
+
+# model4 = smf.ols(formula= 'user_rating ~ user_rating_ver + size_bytes + ipadSc_urls_num + sup_devices_num + lang_num ', data=new_appdata)
+# results_formula = model4.fit()
+# print(model4.fit().summary())
 
 
 
