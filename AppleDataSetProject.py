@@ -61,12 +61,13 @@ appdata.head()
 appdata.shape
 appdata.describe()
 appdata["price"].describe()
-
+appdata.isnull().sum()
 appdata.info()
 appdata=appdata.drop(columns=['Unnamed: 0'], axis=1)
 
 appdata.shape
 appdata.isnull()
+
 appdata.dropna()
 appdata.shape
 
@@ -435,11 +436,10 @@ full_split2.fit(X_train2, y_train2)
 y_pred2 = full_split2.predict(X_test2)
 full_split2.score(X_test2, y_test2)
 
-print('score (train):', full_split2.score(X_train2, y_train2)) # 0.6023509986393917
-print('score (test):', full_split2.score(X_test2, y_test2)) # 0.0.6204260945573832
-print('intercept:', full_split2.intercept_) # 1.63872717
-print('coef_:', full_split2.coef_)  # [-5.67008024e-11  6.32893695e-01  1.57839702e-03 -9.68894846e-03 7.04789432e-03  4.11500645e-02]
-
+print('score (train):', full_split2.score(X_train2, y_train2)) # 0.6011932976343275
+print('score (test):', full_split2.score(X_test2, y_test2)) # 0.6293198958593318
+print('intercept:', full_split2.intercept_) # 1.60945962
+print('coef_:', full_split2.coef_)  # [-5.35620736e-11  6.32288165e-01  3.24451279e-03 -9.18205627e-03 7.24639110e-03  4.08507605e-02]
 
 
 X_train3, X_test3, y_train3, y_test3 = train_test_split(x, y, test_size = 0.1, random_state=333)
@@ -455,7 +455,7 @@ print('coef_:', full_split3.coef_)  # [-5.38258262e-11  6.35560705e-01  3.732490
 
 
 X_train4, X_test4, y_train4, y_test4 = train_test_split(x, y, test_size = 0.05, random_state=333)
-full_split4 = linear_model.LinearRegression() # new instancew
+full_split4 = linear_model.LinearRegression()
 full_split4.fit(X_train4, y_train4)
 y_pred4 = full_split4.predict(X_test4)
 full_split2.score(X_test4, y_test4)
