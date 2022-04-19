@@ -24,7 +24,7 @@ from  scipy.stats import spearmanr
 #load_data
 import os
 os.getcwd()
-os.chdir('/Users/b/Desktop/DataScience/TEAM7')
+#os.chdir('/Users/b/Desktop/DataScience/TEAM7')
 appdata = pd.read_csv('AppleStore.csv' ,sep =',' , encoding = 'utf8' )
 appdata.head()
 
@@ -485,7 +485,7 @@ new_appdata[["ratings_cat", "ratings_cat_en"]].head(11)
 from sklearn.feature_selection import RFE
 from sklearn.linear_model import LogisticRegression
 
-new_appdata['log_rating'].round(decimals = 2)
+#new_appdata['log_rating'].round(decimals = 2)
 
 X = new_appdata.drop('price_cat_en', axis=1)
 X = X.drop('id', axis=1)
@@ -506,7 +506,7 @@ Y.replace([np.inf, -np.inf], np.nan, inplace=True)
 
 #%% [markdown]
 
-X['log_rating'].round(decimals = 2)
+#X['log_rating'].round(decimals = 2)
 
 X['size_bytes'] = X['size_bytes'].div(1000000).round(2)
 X.fillna(-99999, inplace=True)
@@ -583,20 +583,17 @@ print(rfe.ranking_)
 
 # | Features         	| Logistic regression 	|   	| DecisionTree 	|   	| Linear SVC 	|
 # |------------------	|---------------------	|---	|--------------	|---	|------------	|
-# | size_bytes       	|                     	|   	| T            	|   	| T          	|
-# | rating_count_ver 	|                     	|   	| T            	|   	| T          	|
-# | user_rating      	| T                   	|   	| T            	|   	|            	|
-# | user_rating_ver  	| T                   	|   	|              	|   	|            	|
+# | size_bytes       	|                     	|   	| T            	|   	|           	|
+# | rating_count_ver 	|                     	|   	| T            	|   	|           	|
+# | user_rating      	| T                   	|   	| T            	|   	| T           	|
+# | user_rating_ver  	| T                   	|   	|              	|   	| T          	|
 # | sup_devices.num  	|                     	|   	|              	|   	|            	|
 # | ipadSc_urls.num  	|                     	|   	|              	|   	|            	|
-# | lang.num         	|                     	|   	| T            	|   	| T          	|
-# | vpp_lic          	| T                   	|   	|              	|   	|            	|
-# | log_rating       	|                     	|   	|              	|   	| T          	|
-# | genre_en         	|                     	|   	| T            	|   	| T          	|
-# | cont_rating_en   	| T                   	|   	|              	|   	|            	|
-# | ratings_cat_en   	| T                   	|   	|              	|   	|            	|
-# |                  	|                     	|   	|              	|   	|            	|
-# |                  	|                     	|   	|              	|   	|            	|
+# | lang.num         	|                     	|   	| T            	|   	|           	|
+# | vpp_lic          	| T                   	|   	|              	|   	| T           	|
+# | genre_en         	|                     	|   	| T            	|   	|           	|
+# | cont_rating_en   	| T                   	|   	|              	|   	| T           	|
+# | ratings_cat_en   	| T                   	|   	|              	|   	| T           	|
 # |                  	|                     	|   	|              	|   	|            	|
 
 
@@ -676,12 +673,9 @@ print(rfe.ranking_)
 # | ipadSc_urls.num  	|                     	|   	|              	|   	|            	|
 # | lang.num         	|                     	|   	|              	|   	|            	|
 # | vpp_lic          	| T                   	|   	|              	|   	| T          	|
-# | log_rating       	|                     	|   	|              	|   	|            	|
 # | genre_en         	|                     	|   	| T            	|   	|            	|
 # | cont_rating_en   	| T                   	|   	|              	|   	| T          	|
 # | ratings_cat_en   	| T                   	|   	|              	|   	| T          	|
-# |                  	|                     	|   	|              	|   	|            	|
-# |                  	|                     	|   	|              	|   	|            	|
 # |                  	|                     	|   	|              	|   	|            	|
 
 
@@ -699,6 +693,8 @@ print(rfe.ranking_)
 import sklearn
 
 from sklearn.model_selection import train_test_split
+
+from sklearn.metrics import accuracy_score, log_loss
 
 Z = X[['user_rating','user_rating_ver','vpp_lic','cont_rating_en','ratings_cat_en']]
 
@@ -743,10 +739,10 @@ Z = X[['user_rating','genre_en','size_bytes','rating_count_ver','lang.num']]
 
 Z_train,Z_test,y_train,y_test=train_test_split(Z,Y,test_size=0.25,random_state=0)
 
+# random state is added.
 
 
-
-clf = DecisionTreeClassifier()
+clf = DecisionTreeClassifier(criterion="entropy", max_depth=4)
 
 # Train Decision Tree Classifer
 clf = clf.fit(Z_train,y_train)
@@ -766,16 +762,45 @@ print("Log Loss for Decision Tree Classifer 5 features is =: {}".format(ll))
 
 # visualizing the decision tree
 
-from six import StringIO  
-from IPython.display import Image  
-from sklearn.tree import export_graphviz
-import pydotplus
+# from six import StringIO  
+# from IPython.display import Image  
+# from sklearn.tree import export_graphviz
+# import pydotplus
 
 
-dot_data = StringIO()
-export_graphviz(clf, out_file=dot_data,  
-                filled=True, rounded=True,
-                special_characters=True, feature_names = feature_cols,class_names=['0','1'])
-graph = pydotplus.graph_from_dot_data(dot_data.getvalue())  
-graph.write_png('diabetes.png')
-Image(graph.create_png())
+# feature_cols = ['user_rating','genre_en','size_bytes','rating_count_ver','lang.num']
+
+# dot_data = StringIO()
+# export_graphviz(clf, out_file=dot_data,  
+#                 filled=True, rounded=True,
+#                 special_characters=True, feature_names = feature_cols,class_names=['0','1'])
+# graph = pydotplus.graph_from_dot_data(dot_data.getvalue())  
+# graph.write_png('diabetes.png')
+# Image(graph.create_png())
+# %%
+
+# svc for 5 variables
+
+
+from sklearn import svm
+
+
+from sklearn.model_selection import train_test_split
+
+Z = X[['user_rating','user_rating_ver','vpp_lic','cont_rating_en','ratings_cat_en']]
+
+Z_train,Z_test,y_train,y_test=train_test_split(Z,Y,test_size=0.25,random_state=0)
+
+
+clf = svm.SVC(kernel='linear', C = 1.0)
+
+
+clf.fit(Z_train,y_train)
+
+
+y_pred = clf.predict(Z_test)
+
+print("Accuracy for Decision Tree Classifer with 5 features:",metrics.accuracy_score(y_test, y_pred))
+
+ll = log_loss(y_test, y_pred)
+print("Log Loss for Decision Tree Classifer 5 features is =: {}".format(ll))
