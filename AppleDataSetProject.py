@@ -687,7 +687,15 @@ print(rfe.ranking_)
 
 # earlier it was 53% when using all features.
 
+#%%
 
+log_cols=["Classifier", "Accuracy", "Log Loss"]
+log = pd.DataFrame(columns=log_cols)
+
+
+# STORING ACCURACY 
+
+#%%
 
 
 import sklearn
@@ -729,6 +737,11 @@ print('Accuracy score for logisitic regression 5 features is =',score)
 ll = log_loss(y_test, y_pred)
 print("Log Loss for logisitic regression 5 features is =: {}".format(ll))
 
+name = 'logisitic regression 5 features'
+log_entry = pd.DataFrame([[name, score*100, ll]], columns=log_cols)
+log = log.append(log_entry)
+
+
 #Log-loss is indicative of how close the prediction probability is to the corresponding actual/true value (0 or 1 in case of binary classification). The more the predicted probability diverges from the actual value, the higher is the log-loss value.
 #For any given problem, a lower log loss value means better predictions
 # %%
@@ -756,7 +769,9 @@ ll = log_loss(y_test, y_pred)
 print("Log Loss for Decision Tree Classifer 5 features is =: {}".format(ll))
 
 
-
+name = 'Decision Tree Classifer 5 features'
+log_entry = pd.DataFrame([[name, score*100, ll]], columns=log_cols)
+log = log.append(log_entry)
 
 #%%
 
@@ -803,4 +818,137 @@ y_pred = clf.predict(Z_test)
 print("Accuracy for Decision Tree Classifer with 5 features:",metrics.accuracy_score(y_test, y_pred))
 
 ll = log_loss(y_test, y_pred)
-print("Log Loss for Decision Tree Classifer 5 features is =: {}".format(ll))
+print("Log Loss for svm 5 features is =: {}".format(ll))
+
+name = 'Decision svm 5 features'
+log_entry = pd.DataFrame([[name, score*100, ll]], columns=log_cols)
+log = log.append(log_entry)
+
+#%% [markdown]
+
+# for 3 varibales 
+
+
+
+import sklearn
+
+from sklearn.model_selection import train_test_split
+
+from sklearn.metrics import accuracy_score, log_loss
+
+Z = X[['vpp_lic','cont_rating_en','ratings_cat_en']]
+
+Z_train,Z_test,y_train,y_test=train_test_split(Z,Y,test_size=0.25,random_state=0)
+
+
+from sklearn.linear_model import LogisticRegression
+
+logregH = LogisticRegression()
+
+logregH.fit(Z_train,y_train)
+
+y_pred=logregH.predict(Z_test)
+
+from sklearn import metrics
+cnf_matrix = metrics.confusion_matrix(y_test, y_pred)
+cnf_matrix 
+
+from sklearn.model_selection import cross_val_score
+
+# score = logregH.score(X_test, y_test)
+# print('Test Accuracy Score', score)
+
+
+from sklearn.metrics import accuracy_score
+
+y_pred = logregH.predict(Z_test)
+
+score =accuracy_score(y_test,y_pred)
+
+print('Accuracy score for logisitic regression 3 features is =',score)
+ll = log_loss(y_test, y_pred)
+print("Log Loss for logisitic regression 3 features is =: {}".format(ll))
+
+name = 'logisitic regression 3 features'
+log_entry = pd.DataFrame([[name, score*100, ll]], columns=log_cols)
+log = log.append(log_entry)
+
+#%%
+
+from sklearn.tree import DecisionTreeClassifier # Import Decision Tree Classifier
+from sklearn.model_selection import train_test_split
+
+Z = X[['genre_en','size_bytes','rating_count_ver',]]
+
+Z_train,Z_test,y_train,y_test=train_test_split(Z,Y,test_size=0.25,random_state=0)
+
+# random state is added.
+
+
+clf = DecisionTreeClassifier(criterion="entropy", max_depth=4)
+
+# Train Decision Tree Classifer
+clf = clf.fit(Z_train,y_train)
+
+#Predict the response for test dataset
+y_pred = clf.predict(Z_test)
+
+print("Accuracy for Decision Tree Classifer with 3 features:",metrics.accuracy_score(y_test, y_pred))
+
+ll = log_loss(y_test, y_pred)
+print("Log Loss for Decision Tree Classifer 3 features is =: {}".format(ll))
+
+name = 'Decision Tree Classifer 3 features'
+log_entry = pd.DataFrame([[name, score*100, ll]], columns=log_cols)
+log = log.append(log_entry)
+
+#%%
+
+#SVC
+
+
+from sklearn import svm
+
+
+from sklearn.model_selection import train_test_split
+
+Z = X[['vpp_lic','cont_rating_en','ratings_cat_en']]
+
+Z_train,Z_test,y_train,y_test=train_test_split(Z,Y,test_size=0.25,random_state=0)
+
+
+clf = svm.SVC(kernel='linear', C = 1.0)
+
+
+clf.fit(Z_train,y_train)
+
+
+y_pred = clf.predict(Z_test)
+
+print("Accuracy for svm Classifer with 3 features:",metrics.accuracy_score(y_test, y_pred))
+
+ll = log_loss(y_test, y_pred)
+print("Log Loss for svm Classifer 3 features is =: {}".format(ll))
+
+name = 'svm Classifer 3 features'
+log_entry = pd.DataFrame([[name, score*100, ll]], columns=log_cols)
+log = log.append(log_entry)
+
+
+#%%
+
+#plotting accuracy and log loss
+
+sns.set_color_codes("muted")
+sns.barplot(x='Accuracy', y='Classifier', data=log, color="b")
+
+plt.xlabel('Accuracy %')
+plt.title('Classifier Accuracy')
+plt.show()
+
+sns.set_color_codes("muted")
+sns.barplot(x='Log Loss', y='Classifier', data=log, color="g")
+
+plt.xlabel('Log Loss')
+plt.title('Classifier Log Loss')
+plt.show()
