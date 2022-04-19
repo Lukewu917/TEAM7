@@ -675,4 +675,99 @@ print(rfe.ranking_)
 # |                  	|                     	|   	|              	|   	|            	|
 # |                  	|                     	|   	|              	|   	|            	|
 # |                  	|                     	|   	|              	|   	|            	|
+
+
+#%% [markdown]
+
+# Model building 
+
+# Logisitic regression with 5 features 
+
+# earlier it was 53% when using all features.
+
+
+
+
+import sklearn
+
+from sklearn.model_selection import train_test_split
+
+Z = X[['user_rating','user_rating_ver','vpp_lic','cont_rating_en','ratings_cat_en']]
+
+Z_train,Z_test,y_train,y_test=train_test_split(Z,Y,test_size=0.25,random_state=0)
+
+
+from sklearn.linear_model import LogisticRegression
+
+logregH = LogisticRegression()
+
+logregH.fit(Z_train,y_train)
+
+y_pred=logregH.predict(Z_test)
+
+from sklearn import metrics
+cnf_matrix = metrics.confusion_matrix(y_test, y_pred)
+cnf_matrix 
+
+from sklearn.model_selection import cross_val_score
+
+# score = logregH.score(X_test, y_test)
+# print('Test Accuracy Score', score)
+
+
+from sklearn.metrics import accuracy_score
+
+y_pred = logregH.predict(Z_test)
+
+score =accuracy_score(y_test,y_pred)
+
+print('Accuracy score for logisitic regression 5 features is =',score)
+ll = log_loss(y_test, y_pred)
+print("Log Loss for logisitic regression 5 features is =: {}".format(ll))
+
+#Log-loss is indicative of how close the prediction probability is to the corresponding actual/true value (0 or 1 in case of binary classification). The more the predicted probability diverges from the actual value, the higher is the log-loss value.
+#For any given problem, a lower log loss value means better predictions
 # %%
+from sklearn.tree import DecisionTreeClassifier # Import Decision Tree Classifier
+from sklearn.model_selection import train_test_split
+
+Z = X[['user_rating','genre_en','size_bytes','rating_count_ver','lang.num']]
+
+Z_train,Z_test,y_train,y_test=train_test_split(Z,Y,test_size=0.25,random_state=0)
+
+
+
+
+clf = DecisionTreeClassifier()
+
+# Train Decision Tree Classifer
+clf = clf.fit(Z_train,y_train)
+
+#Predict the response for test dataset
+y_pred = clf.predict(Z_test)
+
+print("Accuracy for Decision Tree Classifer with 5 features:",metrics.accuracy_score(y_test, y_pred))
+
+ll = log_loss(y_test, y_pred)
+print("Log Loss for Decision Tree Classifer 5 features is =: {}".format(ll))
+
+
+
+
+#%%
+
+# visualizing the decision tree
+
+from six import StringIO  
+from IPython.display import Image  
+from sklearn.tree import export_graphviz
+import pydotplus
+
+
+dot_data = StringIO()
+export_graphviz(clf, out_file=dot_data,  
+                filled=True, rounded=True,
+                special_characters=True, feature_names = feature_cols,class_names=['0','1'])
+graph = pydotplus.graph_from_dot_data(dot_data.getvalue())  
+graph.write_png('diabetes.png')
+Image(graph.create_png())
