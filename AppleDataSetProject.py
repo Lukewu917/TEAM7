@@ -775,23 +775,24 @@ log = log.append(log_entry)
 
 #%%
 
-# visualizing the decision tree
-
-# from six import StringIO  
-# from IPython.display import Image  
-# from sklearn.tree import export_graphviz
-# import pydotplus
+#visualizing the decision tree
 
 
-# feature_cols = ['user_rating','genre_en','size_bytes','rating_count_ver','lang.num']
+from six import StringIO  
+from IPython.display import Image  
+from sklearn.tree import export_graphviz
+import pydotplus
 
-# dot_data = StringIO()
-# export_graphviz(clf, out_file=dot_data,  
-#                 filled=True, rounded=True,
-#                 special_characters=True, feature_names = feature_cols,class_names=['0','1'])
-# graph = pydotplus.graph_from_dot_data(dot_data.getvalue())  
-# graph.write_png('diabetes.png')
-# Image(graph.create_png())
+
+feature_cols = ['user_rating','genre_en','size_bytes','rating_count_ver','lang.num']
+
+dot_data = StringIO()
+export_graphviz(clf, out_file=dot_data,  
+                filled=True, rounded=True,
+                special_characters=True, feature_names = feature_cols,class_names=['0','1'])
+graph = pydotplus.graph_from_dot_data(dot_data.getvalue())  
+graph.write_png('5-TREE.png')
+Image(graph.create_png())
 # %%
 
 # svc for 5 variables
@@ -873,12 +874,13 @@ name = 'logisitic regression 3 features'
 log_entry = pd.DataFrame([[name, score*100, ll]], columns=log_cols)
 log = log.append(log_entry)
 
+
 #%%
 
 from sklearn.tree import DecisionTreeClassifier # Import Decision Tree Classifier
 from sklearn.model_selection import train_test_split
 
-Z = X[['genre_en','size_bytes','rating_count_ver',]]
+Z = X[['genre_en','size_bytes','rating_count_ver']]
 
 Z_train,Z_test,y_train,y_test=train_test_split(Z,Y,test_size=0.25,random_state=0)
 
@@ -902,8 +904,73 @@ name = 'Decision Tree Classifer 3 features'
 log_entry = pd.DataFrame([[name, score*100, ll]], columns=log_cols)
 log = log.append(log_entry)
 
+from sklearn.metrics import confusion_matrix
+cm = confusion_matrix(y_test, y_pred)
+
+print(cm)
+
+
+
+
+#%%
+#with different ratio
+
+from sklearn.tree import DecisionTreeClassifier # Import Decision Tree Classifier
+from sklearn.model_selection import train_test_split
+
+Z = X[['genre_en','size_bytes','rating_count_ver']]
+
+Z_train,Z_test,y_train,y_test=train_test_split(Z,Y,test_size=0.45,random_state=0)
+
+# random state is added.
+
+
+clf = DecisionTreeClassifier(criterion="entropy", max_depth=4)
+
+# Train Decision Tree Classifer
+clf = clf.fit(Z_train,y_train)
+
+#Predict the response for test dataset
+y_pred = clf.predict(Z_test)
+
+print("Accuracy for Decision Tree Classifer with 3 features (55:45 ratio):",metrics.accuracy_score(y_test, y_pred))
+
+ll = log_loss(y_test, y_pred)
+print("Log Loss for Decision Tree Classifer 3 features (55:45 ratio) is =: {}".format(ll))
+
+name = 'Decision Tree Classifer 3 features (55:45 ratio)'
+log_entry = pd.DataFrame([[name, score*100, ll]], columns=log_cols)
+log = log.append(log_entry)
+
+
+
 #%%
 
+
+#visualizing tree
+
+
+from six import StringIO  
+from IPython.display import Image  
+from sklearn.tree import export_graphviz
+import pydotplus
+
+
+feature_cols = ['genre_en','size_bytes','rating_count_ver']
+
+dot_data = StringIO()
+export_graphviz(clf, out_file=dot_data,  
+                filled=True, rounded=True,
+                special_characters=True, feature_names = feature_cols,class_names=['0','1'])
+graph = pydotplus.graph_from_dot_data(dot_data.getvalue())  
+graph.write_png('3-tree.png')
+Image(graph.create_png())
+
+
+
+
+
+#%%
 #SVC
 
 
@@ -952,3 +1019,7 @@ sns.barplot(x='Log Loss', y='Classifier', data=log, color="g")
 plt.xlabel('Log Loss')
 plt.title('Classifier Log Loss')
 plt.show()
+
+
+#%%
+
