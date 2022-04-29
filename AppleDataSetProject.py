@@ -520,7 +520,7 @@ X.fillna(-99999, inplace=True)
 # Logistic regression 
 
 model = LogisticRegression()
-rfe = RFE(model, 5)
+rfe = RFE(model,n_features_to_select=5)
 fit = rfe.fit(X, Y)
 print("Num Features for logisitic regression classifier: %s" % (fit.n_features_))
 print(X.columns)
@@ -567,7 +567,7 @@ from sklearn.svm import LinearSVC
 svm = LinearSVC()
 # create the RFE model for the svm classifier 
 # and select attributes
-rfe = RFE(svm, 5)
+rfe = RFE(svm, n_features_to_select=5)
 rfe = rfe.fit(X,Y)
 # print summaries for the selection of attributes
 print(rfe.support_)
@@ -606,7 +606,7 @@ from sklearn.linear_model import LogisticRegression
 # Logistic regression 
 
 model = LogisticRegression()
-rfe = RFE(model, 3)
+rfe = RFE(model, n_features_to_select=3)
 fit = rfe.fit(X, Y)
 print("Num Features for logisitic regression classifier: %s" % (fit.n_features_))
 print(X.columns)
@@ -653,7 +653,7 @@ from sklearn.svm import LinearSVC
 svm = LinearSVC()
 # create the RFE model for the svm classifier 
 # and select attributes
-rfe = RFE(svm, 3)
+rfe = RFE(svm, n_features_to_select=3)
 rfe = rfe.fit(X,Y)
 # print summaries for the selection of attributes
 print(rfe.support_)
