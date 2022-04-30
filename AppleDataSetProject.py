@@ -520,7 +520,9 @@ X.fillna(-99999, inplace=True)
 # Logistic regression 
 
 model = LogisticRegression()
-rfe = RFE(model,n_features_to_select=5)
+
+rfe = RFE(model,n_features_to_select = 5)
+
 fit = rfe.fit(X, Y)
 print("Num Features for logisitic regression classifier: %s" % (fit.n_features_))
 print(X.columns)
@@ -567,7 +569,9 @@ from sklearn.svm import LinearSVC
 svm = LinearSVC()
 # create the RFE model for the svm classifier 
 # and select attributes
-rfe = RFE(svm, n_features_to_select=5)
+
+rfe = RFE(svm,n_features_to_select = 5)
+
 rfe = rfe.fit(X,Y)
 # print summaries for the selection of attributes
 print(rfe.support_)
@@ -606,7 +610,9 @@ from sklearn.linear_model import LogisticRegression
 # Logistic regression 
 
 model = LogisticRegression()
-rfe = RFE(model, n_features_to_select=3)
+
+rfe = RFE(model, n_features_to_select = 3)
+
 fit = rfe.fit(X, Y)
 print("Num Features for logisitic regression classifier: %s" % (fit.n_features_))
 print(X.columns)
@@ -653,7 +659,9 @@ from sklearn.svm import LinearSVC
 svm = LinearSVC()
 # create the RFE model for the svm classifier 
 # and select attributes
-rfe = RFE(svm, n_features_to_select=3)
+
+rfe = RFE(svm,n_features_to_select = 3)
+
 rfe = rfe.fit(X,Y)
 # print summaries for the selection of attributes
 print(rfe.support_)
@@ -795,9 +803,63 @@ graph.write_png('5-TREE.png')
 Image(graph.create_png())
 # %%
 
+from sklearn.tree import DecisionTreeClassifier # Import Decision Tree Classifier
+from sklearn.model_selection import train_test_split
+
+Z = X[['user_rating','genre_en','size_bytes','rating_count_ver','lang.num']]
+
+Z_train,Z_test,y_train,y_test=train_test_split(Z,Y,test_size=0.25,random_state=0)
+
+# random state is added.
+
+
+clf = DecisionTreeClassifier(criterion="entropy", max_depth=4)
+
+# Train Decision Tree Classifer
+clf = clf.fit(Z_train,y_train)
+
+#Predict the response for test dataset
+y_pred = clf.predict(Z_test)
+
+print("Accuracy for Decision Tree Classifer with 5 features(gini -):",metrics.accuracy_score(y_test, y_pred))
+
+ll = log_loss(y_test, y_pred)
+print("Log Loss for Decision Tree Classifer 5 features(gini) is =: {}".format(ll))
+
+
+name = 'Decision Tree Classifer 5 features(gini -)'
+log_entry = pd.DataFrame([[name, score*100, ll]], columns=log_cols)
+log = log.append(log_entry)
+
+#%%
+
+#visualizing the decision tree
+
+
+from six import StringIO  
+from IPython.display import Image  
+from sklearn.tree import export_graphviz
+import pydotplus
+
+
+feature_cols = ['user_rating','genre_en','size_bytes','rating_count_ver','lang.num']
+
+dot_data = StringIO()
+export_graphviz(clf, out_file=dot_data,  
+                filled=True, rounded=True,
+                special_characters=True, feature_names = feature_cols,class_names=['0','1'])
+graph = pydotplus.graph_from_dot_data(dot_data.getvalue())  
+graph.write_png('5gini-TREE.png')
+Image(graph.create_png())
+# %%
+
+# Let's begin explaining how to read the graph.
+
+print("The first line of each node (except those of the final row) shows the splitting condition in the form feature <= value.\n Next, we find the Gini Impurity of the node.Samples is simply the number of observations contained in the node.\n Observations from the tree:\n \n 1.(Right blue tree)App with size_bytes(in mb) >= 395.65 + lang_num< 10, 98.89% of chance to be a paid app.\n 2.(Left red tree) size_bytes(in mb)>35 + genre(Book(0),buisness(1),Education(2),Catalogs(3) has 93%  chance of becoming free app")
+
 # svc for 5 variables
 
-
+#%%
 from sklearn import svm
 
 
@@ -1023,3 +1085,7 @@ plt.show()
 
 #%%
 
+print("Best model is the Decision tree with 5 feature with gini feature.Decision tree with 5 feature with gini  has the high accuracy and low log loss also model with high features  is the best model. with feature used are size_bytes,rating_count_ver,user_rating,lang_num,genre_en. \n Accuracy of the model Decision tree with 3 variables: 63.71% , \n Log loss : 12.53  \n  With gini :Accuracy : 64.24% \n Log loss : 12.35 \n With 5 features with gini \n Accu : 64.5%   \n Log loss : 12.2  \n We have tried in changing the but there has no change in accuracy in changing the levels ")
+
+
+#%%
