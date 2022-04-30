@@ -816,7 +816,7 @@ clf.fit(Z_train,y_train)
 
 y_pred = clf.predict(Z_test)
 
-print("Accuracy for Decision Tree Classifer with 5 features:",metrics.accuracy_score(y_test, y_pred))
+print("Accuracy for svm Classifer with 5 features:",metrics.accuracy_score(y_test, y_pred))
 
 ll = log_loss(y_test, y_pred)
 print("Log Loss for svm 5 features is =: {}".format(ll))
