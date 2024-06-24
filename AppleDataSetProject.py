@@ -76,7 +76,7 @@ from scipy.stats import zscore
 
 # * Price Outliers
 price = list(appdata.price)
-plt.style.use('dark_background')
+#plt.style.use('dark_background')
 sns.boxplot(price)
 plt.show()
 sns.distplot(appdata['price'], bins=20)
@@ -205,18 +205,18 @@ plt.savefig('g2.png')
 # #Graph 3
 
 
-plt.style.use('dark_background')
+#plt.style.use('dark_background')
 fig = plt.figure(figsize=(10, 5))
 highratings = new_appdata[new_appdata['ratings_cat'] == 'high']
 lowratings = new_appdata[new_appdata['ratings_cat'] == 'low']
 
 
-ax = sns.kdeplot(highratings['price'], color ='White', label='Apps with High Ratings', shade=False)
+ax = sns.kdeplot(highratings['price'], color ='Blue', label='Apps with High Ratings', shade=False)
 ax = sns.kdeplot(lowratings['price'], color='Red', label='Apps with Low Ratings', shade=False)
 
 plt.yticks([])
 plt.title('Price Distribution by User Ratings')
-plt.ylabel('')
+plt.ylabel('Density')
 plt.xlabel('Price')
 plt.xlim(0, 10)
 plt.legend(loc="upper left")
